@@ -12,12 +12,15 @@ int main ()
 	DLSurface surface = DL_CreateSurface(8, 8, color);
 	DLSurface partSurface = DL_ClipSurface(&surface, DLVec4 {0, 0, 4, 4});
 
-	for (int i = 0; i < partSurface.area; i++)
+	DL_FillSurface(&partSurface, DLVec4 {100, 255, 200, 255});
+	DL_DrawSurface(&surface, &partSurface, DLVec4 {0, 0, 4, 4});
+
+	for (int i = 0; i < surface.area; i++)
 	{
-		int r = partSurface.data[i * 4];
-		int g = partSurface.data[i * 4 + 1];
-		int b = partSurface.data[i * 4 + 2];
-		int a = partSurface.data[i * 4 + 3];
+		int r = surface.data[i * 4];
+		int g = surface.data[i * 4 + 1];
+		int b = surface.data[i * 4 + 2];
+		int a = surface.data[i * 4 + 3];
 		std::cout << r << "," << g << "," << b << "," << a << "\n";
 	}
 

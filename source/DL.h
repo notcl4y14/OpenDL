@@ -35,5 +35,6 @@ DLSurface DL_ClipSurface (DLSurface* surface, DLVec4 rect);
 DLSurface DL_ClipSurface (DLSurface* surface, int x, int y, int width, int height);
 
 void DL_FillSurface (DLSurface* surface, DLVec4 color);
+void DL_DrawSurface (DLSurface* dest, DLSurface* src, DLVec4 rect);
 
 float DL_GetVectorValue (DLVec4 vector, int index);

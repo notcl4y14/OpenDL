@@ -143,6 +143,33 @@ void DL_FillSurface (DLSurface* surface, DLVec4 color)
 	}
 }
 
+void DL_DrawSurface (DLSurface* dest, DLSurface* src, DLVec4 rect)
+{
+	int x1 = rect.a;
+	int y1 = rect.b;
+	int x2 = rect.c;
+	int y2 = rect.d;
+
+	int width = x2 - x1;
+	int height = y2 - y1;
+	int area = width * height;
+
+	// For some reason putting "dest" instead of "src" here randomized the output
+	float widthFraction = src->width / width;
+	float heightFraction = src->height / height;
+
+	for (int i = 0; i < area; i++)
+	{
+		int x = i % width;
+		int y = i / width;
+		int pixelX = x * widthFraction;
+		int pixelY = y * heightFraction;
+
+		DLVec4 color = DL_SurfaceGetColor(src, pixelX, pixelY);
+		DL_SurfaceSetColor(dest, x + x1, y + y1, color);
+	}
+}
+
 // ======================== //
 // ======== DLVec4 ======== //
 // ======================== //
