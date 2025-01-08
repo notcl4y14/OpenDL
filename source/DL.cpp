@@ -1,67 +1,107 @@
-#include "DL.h"
+#include <DL.h>
 
-DLSurface* __DLSurface;
-
-void DLInit()
+void DL_Init ()
 {
-	__DLSurface = nullptr;
+	return;
 }
 
-void DLBindSurface(DLSurface &surface)
-{
-	__DLSurface = &surface;
-}
+// =========================== //
+// ======== DLSurface ======== //
+// =========================== //
 
-DLSurface DLSurfaceCreate (int width, int height)
+DLSurface DL_CreateSurface (int width, int height)
 {
 	DLSurface surface;
+
 	surface.width = width;
 	surface.height = height;
 	surface.area = surface.width * surface.height;
 	surface.count = surface.area * 4;
-	surface.data.resize(surface.count);
+	surface.data = new DL_UChar[surface.count];
+
 	return surface;
 }
 
-void DLSurfaceFill (DLVec4 color)
+DLSurface DL_CreateSurface (int width, int height, DL_UChar* color)
 {
-	if (__DLSurface == nullptr)
-	{
-		return;
-	}
-	
-	int index = -1;
-	int area = __DLSurface->area;
+	DLSurface surface = DL_CreateSurface(width, height);
 
-	while (++index < area)
+	int index = -1;
+
+	while (++index < surface.count)
 	{
-		int pixelIndex = index * 4;
-		__DLSurface->data.at(pixelIndex) = color.a;
-		__DLSurface->data.at(pixelIndex + 1) = color.b;
-		__DLSurface->data.at(pixelIndex + 2) = color.c;
-		__DLSurface->data.at(pixelIndex + 3) = color.d;
+		surface.data[index] = color[index % 4];
 	}
+
+	return surface;
 }
 
-DLSurface DLSurfaceClip (DLVec4 clip)
+DLSurface DL_CreateSurface (int width, int height, DLVec4 color)
 {
-	if (__DLSurface == nullptr)
+	DLSurface surface = DL_CreateSurface(width, height);
+
+	int index = -1;
+
+	while (++index < surface.count)
 	{
-		return DLSurface{};
+		surface.data[index] = DL_GetVectorValue(color, index);
 	}
 
-	DLSurface surface;
+	return surface;
+}
 
-	int x1 = clip.a;
-	int y1 = clip.b;
-	int x2 = clip.c;
-	int y2 = clip.d;
+void DL_DestroySurface (DLSurface* surface)
+{
+	delete[] surface->data;
+}
 
-	surface.width = x2 - x1;
-	surface.height = y2 - y1;
-	surface.area = surface.width * surface.height;
-	surface.count = surface.area * 4;
-	surface.data.resize(surface.count);
+// ================================ //
+
+DLVec4 DL_SurfaceGetColor (DLSurface* surface, int x, int y)
+{
+	return DL_SurfaceGetColor(surface, y * surface->width + x);
+}
+
+DLVec4 DL_SurfaceGetColor (DLSurface* surface, int index)
+{
+	int pixelIndex = index * 4;
+
+	DLVec4 color;
+	color.a = surface->data[pixelIndex];
+	color.b = surface->data[pixelIndex + 1];
+	color.c = surface->data[pixelIndex + 2];
+	color.d = surface->data[pixelIndex + 3];
+
+	return color;
+}
+
+void DL_SurfaceSetColor (DLSurface* surface, int x, int y, DLVec4 color)
+{
+	DL_SurfaceSetColor(surface, y * surface->width + x, color);
+}
+
+void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color)
+{
+	int pixelIndex = index * 4;
+	surface->data[pixelIndex] = color.a;
+	surface->data[pixelIndex + 1] = color.b;
+	surface->data[pixelIndex + 2] = color.c;
+	surface->data[pixelIndex + 3] = color.d;
+}
+
+// ================================ //
+
+DLSurface DL_ClipSurface (DLSurface* surface, DLVec4 rect)
+{
+	return DL_ClipSurface(surface, rect.a, rect.b, rect.c, rect.d);
+}
+
+DLSurface DL_ClipSurface (DLSurface* surface, int x1, int y1, int x2, int y2)
+{
+	int width = x2 - x1;
+	int height = y2 - y1;
+	
+	DLSurface newSurface = DL_CreateSurface(width, height);
 
 	int x = x1;
 	int y = y1;
@@ -70,16 +110,16 @@ DLSurface DLSurfaceClip (DLVec4 clip)
 	{
 		while (y < y2)
 		{
-			DLVec4 color = DLSurfaceGetColor(x, y);
+			DLVec4 color = DL_SurfaceGetColor(surface, x, y);
 
 			int pixelX = x - x1;
 			int pixelY = y - y1;
-			int index = (pixelY * surface.width + pixelX) * 4;
+			int index = (pixelY * newSurface.width + pixelX) * 4;
 
-			surface.data.at(index) = color.a;
-			surface.data.at(index) = color.b;
-			surface.data.at(index) = color.c;
-			surface.data.at(index) = color.d;
+			newSurface.data[index] = color.a;
+			newSurface.data[index + 1] = color.b;
+			newSurface.data[index + 2] = color.c;
+			newSurface.data[index + 3] = color.d;
 			
 			y++;
 		}
@@ -88,128 +128,42 @@ DLSurface DLSurfaceClip (DLVec4 clip)
 		y = y1;
 	}
 
-	return surface;
+	return newSurface;
 }
 
-void DLSurfaceDraw (DLSurface surface)
-{
-	DLSurfaceDraw(surface, DLVec2{0, 0});
-}
+// ================================ //
 
-void DLSurfaceDraw(DLSurface surface, DLVec2 position)
+void DL_FillSurface (DLSurface* surface, DLVec4 color)
 {
-	DLSurfaceDraw(surface, DLVec4{
-		position.a, position.b,
-		position.a + surface.width, position.b + surface.height});
-}
+	int index = -1;
 
-void DLSurfaceDraw(DLSurface surface, DLVec4 rect)
-{
-	if (__DLSurface == nullptr)
+	while (++index < surface->count)
 	{
-		return;
+		surface->data[index] = DL_GetVectorValue(color, index);
 	}
-	
-	int x1 = rect.a;
-	int y1 = rect.b;
-	int x2 = rect.c;
-	int y2 = rect.d;
+}
 
-	int width = x2 - x1;
-	int height = y2 - y1;
-	int area = width * height;
+// ======================== //
+// ======== DLVec4 ======== //
+// ======================== //
 
-	float widthFraction = surface.width / width;
-	float heightFraction = surface.height / height;
-
-	int index = 0;
-
-	while (index < area)
+float DL_GetVectorValue (DLVec4 vector, int index)
+{
+	switch (index % 4)
 	{
-		int x = index % width;
-		int y = index / width;
-		int pixelX = x * widthFraction;
-		int pixelY = y * heightFraction;
-
-		DLVec4 color = DLSurfaceGetColor(pixelX, pixelY);
-		DLSurfaceSetColor(x + x1, y + y1, color);
+		case 0:
+			return vector.a;
 		
-		index++;
+		case 1:
+			return vector.b;
+		
+		case 2:
+			return vector.c;
+		
+		case 3:
+			return vector.d;
+		
+		default:
+			return 0;
 	}
-}
-
-DLVec4 DLSurfaceGetColor (DLVec2 position)
-{
-	return DLSurfaceGetColor(position.a, position.b);
-}
-
-DLVec4 DLSurfaceGetColor (int x, int y)
-{
-	if (__DLSurface == nullptr)
-	{
-		return DLVec4{};
-	}
-
-	int index = (y * __DLSurface->width + x) * 4;
-	
-	DLVec4 color;
-	color.a = __DLSurface->data.at(index);
-	color.b = __DLSurface->data.at(index + 1);
-	color.c = __DLSurface->data.at(index + 2);
-	color.d = __DLSurface->data.at(index + 3);
-
-	return color;
-}
-
-DLVec4 DLSurfaceGetColor (int index)
-{
-	if (__DLSurface == nullptr)
-	{
-		return DLVec4{};
-	}
-
-	int pixelIndex = index * 4;
-	
-	DLVec4 color;
-	color.a = __DLSurface->data.at(pixelIndex);
-	color.b = __DLSurface->data.at(pixelIndex + 1);
-	color.c = __DLSurface->data.at(pixelIndex + 2);
-	color.d = __DLSurface->data.at(pixelIndex + 3);
-
-	return color;
-}
-
-void DLSurfaceSetColor (DLVec2 position, DLVec4 color)
-{
-	DLSurfaceSetColor(position.a, position.b, color);
-}
-
-void DLSurfaceSetColor (int x, int y, DLVec4 color)
-{
-	if (__DLSurface == nullptr)
-	{
-		return;
-	}
-
-	int index = (y * __DLSurface->width + x) * 4;
-	
-	__DLSurface->data.at(index) = color.a;
-	__DLSurface->data.at(index + 1) = color.b;
-	__DLSurface->data.at(index + 2) = color.c;
-	__DLSurface->data.at(index + 3) = color.d;
-}
-
-void DLSurfaceSetColor (int index, DLVec4 color)
-{
-	if (__DLSurface == nullptr)
-	{
-		return;
-	}
-
-	int pixelIndex = pixelIndex * 4;
-	
-	__DLSurface->data.at(pixelIndex) = color.a;
-	__DLSurface->data.at(pixelIndex + 1) = color.b;
-	__DLSurface->data.at(pixelIndex + 2) = color.c;
-	__DLSurface->data.at(pixelIndex + 3) = color.d;
 }

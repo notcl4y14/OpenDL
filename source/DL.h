@@ -1,47 +1,39 @@
 #pragma once
 
-#include <vector>
+#define DL_UChar unsigned char
 
-struct DLSurface {
-	// TODO: Change vector to array or char*, if needed
-	std::vector<int> data;
+struct DLSurface
+{
+	DL_UChar* data;
 	int width;
 	int height;
 	int area;
 	int count;
 };
 
-struct DLVec2 {
-	int a;
-	int b;
+struct DLVec4
+{
+	float a;
+	float b;
+	float c;
+	float d;
 };
 
-struct DLVec3 {
-	int a;
-	int b;
-	int c;
-};
+void DL_Init();
 
-struct DLVec4 {
-	int a;
-	int b;
-	int c;
-	int d;
-};
+DLSurface DL_CreateSurface (int width, int height);
+DLSurface DL_CreateSurface (int width, int height, DL_UChar* color);
+DLSurface DL_CreateSurface (int width, int height, DLVec4 color);
+void DL_DestroySurface (DLSurface* surface);
 
-void DLInit();
+DLVec4 DL_SurfaceGetColor (DLSurface* surface, int x, int y);
+DLVec4 DL_SurfaceGetColor (DLSurface* surface, int index);
+void DL_SurfaceSetColor (DLSurface* surface, int x, int y, DLVec4 color);
+void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color);
 
-void DLBindSurface(DLSurface &surface);
+DLSurface DL_ClipSurface (DLSurface* surface, DLVec4 rect);
+DLSurface DL_ClipSurface (DLSurface* surface, int x, int y, int width, int height);
 
-DLSurface DLSurfaceCreate(int width, int height);
-void DLSurfaceFill(DLVec4 color);
-void DLSurfaceDraw(DLSurface surface);
-void DLSurfaceDraw(DLSurface surface, DLVec2 position);
-void DLSurfaceDraw(DLSurface surface, DLVec4 rect);
-DLSurface DLSurfaceClip(DLVec4 clip);
-DLVec4 DLSurfaceGetColor(DLVec2 position);
-DLVec4 DLSurfaceGetColor(int x, int y);
-DLVec4 DLSurfaceGetColor(int index);
-void DLSurfaceSetColor(DLVec2 position, DLVec4 color);
-void DLSurfaceSetColor(int x, int y, DLVec4 color);
-void DLSurfaceSetColor(int index, DLVec4 color);
+void DL_FillSurface (DLSurface* surface, DLVec4 color);
+
+float DL_GetVectorValue (DLVec4 vector, int index);
