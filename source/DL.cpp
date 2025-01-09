@@ -91,6 +91,37 @@ void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color)
 
 // ================================ //
 
+void DL_SurfaceSetSize (DLSurface* surface, DLVec2 dimensions)
+{
+	DL_SurfaceSetSize(surface, dimensions.a, dimensions.b);
+}
+
+void DL_SurfaceSetSize (DLSurface* surface, int width, int height)
+{
+	DLSurface newSurface = DL_CreateSurface(width, height);
+
+	int index = -1;
+
+	while (++index < newSurface.area)
+	{
+		int x = index % newSurface.width;
+		int y = index / newSurface.width;
+
+		DLVec4 color = {0, 0, 0, 0};
+
+		if (x >= 0 && x < surface->width && y >= 0 && y < surface->height)
+		{
+			color = DL_SurfaceGetColor(surface, x, y);	
+		}
+
+		DL_SurfaceSetColor(&newSurface, index, color);
+	}
+
+	(*surface) = newSurface;
+}
+
+// ================================ //
+
 DLSurface DL_ClipSurface (DLSurface* surface, DLVec4 rect)
 {
 	return DL_ClipSurface(surface, rect.a, rect.b, rect.c, rect.d);

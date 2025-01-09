@@ -11,6 +11,12 @@ struct DLSurface
 	int count;
 };
 
+struct DLVec2
+{
+	float a;
+	float b;
+};
+
 struct DLVec4
 {
 	float a;
@@ -30,6 +36,9 @@ DLVec4 DL_SurfaceGetColor (DLSurface* surface, int x, int y);
 DLVec4 DL_SurfaceGetColor (DLSurface* surface, int index);
 void DL_SurfaceSetColor (DLSurface* surface, int x, int y, DLVec4 color);
 void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color);
+
+void DL_SurfaceSetSize (DLSurface* surface, DLVec2 dimensions);
+void DL_SurfaceSetSize (DLSurface* surface, int width, int height);
 
 DLSurface DL_ClipSurface (DLSurface* surface, DLVec4 rect);
 DLSurface DL_ClipSurface (DLSurface* surface, int x, int y, int width, int height);

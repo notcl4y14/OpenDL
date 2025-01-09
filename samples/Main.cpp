@@ -1,7 +1,5 @@
 #include <DL.h>
 #include <iostream>
-#include <string>
-#include "Util.h"
 
 int main ()
 {
@@ -14,6 +12,8 @@ int main ()
 
 	DL_FillSurface(&partSurface, DLVec4 {100, 255, 200, 255});
 	DL_DrawSurface(&surface, &partSurface, DLVec4 {0, 0, 4, 4});
+
+	DL_SurfaceSetSize(&surface, 9, 9);
 
 	for (int i = 0; i < surface.area; i++)
 	{
