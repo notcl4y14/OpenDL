@@ -1,4 +1,5 @@
-#include <DL.h>
+#include "DL.h"
+#include <stdlib.h>
 
 void DL_Init ()
 {
@@ -17,50 +18,17 @@ DLSurface DL_CreateSurface (int width, int height)
 	surface.height = height;
 	surface.area = surface.width * surface.height;
 	surface.count = surface.area * 4;
-	surface.data = new DL_UChar[surface.count];
-
-	return surface;
-}
-
-DLSurface DL_CreateSurface (int width, int height, DL_UChar* color)
-{
-	DLSurface surface = DL_CreateSurface(width, height);
-
-	int index = -1;
-
-	while (++index < surface.count)
-	{
-		surface.data[index] = color[index % 4];
-	}
-
-	return surface;
-}
-
-DLSurface DL_CreateSurface (int width, int height, DLVec4 color)
-{
-	DLSurface surface = DL_CreateSurface(width, height);
-
-	int index = -1;
-
-	while (++index < surface.count)
-	{
-		surface.data[index] = DL_GetVectorValue(color, index);
-	}
+	surface.data = (DL_UChar*)calloc(surface.count, sizeof(DL_UChar));
 
 	return surface;
 }
 
 void DL_DestroySurface (DLSurface* surface)
 {
-	delete[] surface->data;
+	free(surface->data);
 }
 
 // ================================ //
-
-DLVec4 DL_SurfaceGetColor (DLSurface* surface, int x, int y)
-{
-	return DL_SurfaceGetColor(surface, y * surface->width + x);
-}
 
 DLVec4 DL_SurfaceGetColor (DLSurface* surface, int index)
 {
@@ -75,9 +43,9 @@ DLVec4 DL_SurfaceGetColor (DLSurface* surface, int index)
 	return color;
 }
 
-void DL_SurfaceSetColor (DLSurface* surface, int x, int y, DLVec4 color)
+DLVec4 DL_SurfaceGetColor_Pos (DLSurface* surface, int x, int y)
 {
-	DL_SurfaceSetColor(surface, y * surface->width + x, color);
+	return DL_SurfaceGetColor(surface, y * surface->width + x);
 }
 
 void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color)
@@ -89,12 +57,12 @@ void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color)
 	surface->data[pixelIndex + 3] = color.d;
 }
 
-// ================================ //
-
-void DL_SurfaceSetSize (DLSurface* surface, DLVec2 dimensions)
+void DL_SurfaceSetColor_Pos (DLSurface* surface, int x, int y, DLVec4 color)
 {
-	DL_SurfaceSetSize(surface, dimensions.a, dimensions.b);
+	DL_SurfaceSetColor(surface, y * surface->width + x, color);
 }
+
+// ================================ //
 
 void DL_SurfaceSetSize (DLSurface* surface, int width, int height)
 {
@@ -111,7 +79,7 @@ void DL_SurfaceSetSize (DLSurface* surface, int width, int height)
 
 		if (x >= 0 && x < surface->width && y >= 0 && y < surface->height)
 		{
-			color = DL_SurfaceGetColor(surface, x, y);	
+			color = DL_SurfaceGetColor_Pos(surface, x, y);	
 		}
 
 		DL_SurfaceSetColor(&newSurface, index, color);
@@ -120,12 +88,12 @@ void DL_SurfaceSetSize (DLSurface* surface, int width, int height)
 	(*surface) = newSurface;
 }
 
-// ================================ //
-
-DLSurface DL_ClipSurface (DLSurface* surface, DLVec4 rect)
+void DL_SurfaceSetSize_Dim (DLSurface* surface, DLVec2 dimensions)
 {
-	return DL_ClipSurface(surface, rect.a, rect.b, rect.c, rect.d);
+	DL_SurfaceSetSize(surface, dimensions.a, dimensions.b);
 }
+
+// ================================ //
 
 DLSurface DL_ClipSurface (DLSurface* surface, int x1, int y1, int x2, int y2)
 {
@@ -141,7 +109,7 @@ DLSurface DL_ClipSurface (DLSurface* surface, int x1, int y1, int x2, int y2)
 	{
 		while (y < y2)
 		{
-			DLVec4 color = DL_SurfaceGetColor(surface, x, y);
+			DLVec4 color = DL_SurfaceGetColor_Pos(surface, x, y);
 
 			int pixelX = x - x1;
 			int pixelY = y - y1;
@@ -160,6 +128,11 @@ DLSurface DL_ClipSurface (DLSurface* surface, int x1, int y1, int x2, int y2)
 	}
 
 	return newSurface;
+}
+
+DLSurface DL_ClipSurface_Rect (DLSurface* surface, DLVec4 rect)
+{
+	return DL_ClipSurface(surface, rect.a, rect.b, rect.c, rect.d);
 }
 
 // ================================ //
@@ -196,9 +169,41 @@ void DL_DrawSurface (DLSurface* dest, DLSurface* src, DLVec4 rect)
 		int pixelX = x * widthFraction;
 		int pixelY = y * heightFraction;
 
-		DLVec4 color = DL_SurfaceGetColor(src, pixelX, pixelY);
-		DL_SurfaceSetColor(dest, x + x1, y + y1, color);
+		DLVec4 color = DL_SurfaceGetColor_Pos(src, pixelX, pixelY);
+		DL_SurfaceSetColor_Pos(dest, x + x1, y + y1, color);
 	}
+}
+
+DLSurface DL_SurfaceApplyShader (DLSurface* surface, DLShader* shader)
+{
+	DLSurface output = *surface;
+
+	int index = -1;
+
+	while (++index < surface->area)
+	{
+		DLVec4 color = {shader->data[0], shader->data[1], shader->data[2], shader->data[3]};
+		DL_SurfaceSetColor(&output, index, color);
+	}
+
+	return output;
+}
+
+// ========================== //
+// ======== DLShader ======== //
+// ========================== //
+
+DLShader DL_CreateShader ()
+{
+	DLShader shader;
+	shader.size = 4;
+	shader.data = (DL_UChar*)calloc(shader.size, sizeof(DL_UChar));
+	return shader;
+}
+
+void DL_DestroyShader (DLShader* shader)
+{
+	free(shader->data);
 }
 
 // ======================== //
