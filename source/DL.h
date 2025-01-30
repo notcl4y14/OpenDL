@@ -6,55 +6,20 @@
 typedef struct
 {
 	DL_UChar* data;
-	int width;
-	int height;
 	int area;
 	int count;
-} DLSurface;
-
-typedef struct
-{
-	DL_UChar* data;
 	int size;
-} DLShader;
-
-typedef struct
-{
-	float a;
-	float b;
-} DLVec2;
-
-typedef struct
-{
-	float a;
-	float b;
-	float c;
-	float d;
-} DLVec4;
+} DlBuffer;
 
 void DL_Init();
 
-DLSurface DL_CreateSurface (int width, int height);
-void DL_DestroySurface (DLSurface* surface);
+DlBuffer Dl_CreateBuffer (int count, int size);
+void Dl_FreeBuffer (DlBuffer* buffer);
 
-DLVec4 DL_SurfaceGetColor_Pos (DLSurface* surface, int x, int y);
-DLVec4 DL_SurfaceGetColor (DLSurface* surface, int index);
-void DL_SurfaceSetColor_Pos (DLSurface* surface, int x, int y, DLVec4 color);
-void DL_SurfaceSetColor (DLSurface* surface, int index, DLVec4 color);
+DL_UChar Dl_BufferGet (DlBuffer* buffer, int index, int step);
+void Dl_BufferSet (DlBuffer* buffer, int index, int values, ...);
 
-void DL_SurfaceSetSize_Dim (DLSurface* surface, DLVec2 dimensions);
-void DL_SurfaceSetSize (DLSurface* surface, int width, int height);
-
-DLSurface DL_ClipSurface_Rect (DLSurface* surface, DLVec4 rect);
-DLSurface DL_ClipSurface (DLSurface* surface, int x, int y, int width, int height);
-
-void DL_FillSurface (DLSurface* surface, DLVec4 color);
-void DL_DrawSurface (DLSurface* dest, DLSurface* src, DLVec4 rect);
-DLSurface DL_SurfaceApplyShader (DLSurface* surface, DLShader* shader);
-
-DLShader DL_CreateShader ();
-void DL_DestroyShader (DLShader* shader);
-
-float DL_GetVectorValue (DLVec4 vector, int index);
+void Dl_SetBufferArea (DlBuffer* buffer, int area);
+void Dl_FillBuffer (DlBuffer* buffer, int values, ...);
 
 #endif
