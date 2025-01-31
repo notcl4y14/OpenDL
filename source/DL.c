@@ -2,22 +2,29 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-void DL_Init ()
+void Dl_Init ()
 {
-	return;
+	__Dl_DefaultPixelSize = 1;
+}
+
+void Dl_SetDefaultPixelSize (unsigned int size)
+{
+	__Dl_DefaultPixelSize = size;
 }
 
 // ========================== //
 // ======== DlBuffer ======== //
 // ========================== //
 
-DlBuffer Dl_CreateBuffer (int area, int size)
+DlBuffer Dl_CreateBuffer (int width, int height)
 {
 	DlBuffer buffer;
 
-	buffer.area = area;
-	buffer.size = size;
-	buffer.count = area * size;
+	buffer.width = width;
+	buffer.height = height;
+	buffer.area = width * height;
+	buffer.size = __Dl_DefaultPixelSize;
+	buffer.count = buffer.area * buffer.size;
 	buffer.data = (DL_UChar*)calloc(buffer.count, sizeof(DL_UChar));
 
 	return buffer;
@@ -30,15 +37,37 @@ void Dl_FreeBuffer (DlBuffer* buffer)
 
 // ================================ //
 
-DL_UChar Dl_BufferGet (DlBuffer* buffer, int index, int step)
+DL_UChar Dl_BufferGetPixel (DlBuffer* buffer, int index, int step)
 {
 	return buffer->data[index * buffer->size + step];
 }
 
-void Dl_BufferSet (DlBuffer* buffer, int index, int values, ...)
+DL_UChar Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step)
+{
+	return Dl_BufferGetPixel(buffer, y * buffer->width + x, step);
+}
+
+void Dl_BufferSetPixel (DlBuffer* buffer, int index, ...)
 {
 	va_list args;
-	va_start(args, values);
+	va_start(args, index);
+
+	int i = -1;
+
+	while (++i < buffer->size)
+	{
+		buffer->data[index + i] = va_arg(args, int);
+	}
+
+	va_end(args);
+}
+
+void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...)
+{
+	va_list args;
+	va_start(args, y);
+
+	int index = y * buffer->width + x;
 
 	int i = -1;
 
@@ -52,9 +81,11 @@ void Dl_BufferSet (DlBuffer* buffer, int index, int values, ...)
 
 // ================================ //
 
-void Dl_SetBufferArea (DlBuffer* buffer, int area)
+void Dl_SetBufferSize (DlBuffer* buffer, int width, int height)
 {
-	buffer->area = area;
+	buffer->width = width;
+	buffer->height = height;
+	buffer->area = width * height;
 	buffer->count = buffer->area * buffer->size;
 	free(buffer->data);
 	buffer->data = (DL_UChar*)calloc(buffer->count, sizeof(DL_UChar));
@@ -62,10 +93,10 @@ void Dl_SetBufferArea (DlBuffer* buffer, int area)
 
 // ================================ //
 
-void Dl_FillBuffer (DlBuffer* buffer, int values, ...)
+void Dl_FillBuffer (DlBuffer* buffer, ...)
 {
 	va_list args;
-	va_start(args, values);
+	va_start(args, buffer);
 
 	int index = -1;
 
@@ -74,7 +105,7 @@ void Dl_FillBuffer (DlBuffer* buffer, int values, ...)
 		if (index % buffer->size == 0)
 		{
 			va_end(args);
-			va_start(args, values);
+			va_start(args, buffer);
 		}
 
 		buffer->data[index] = va_arg(args, int);

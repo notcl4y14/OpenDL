@@ -6,20 +6,28 @@
 typedef struct
 {
 	DL_UChar* data;
+	int width;
+	int height;
 	int area;
 	int count;
 	int size;
 } DlBuffer;
 
-void DL_Init();
+static unsigned int __Dl_DefaultPixelSize = 1;
 
-DlBuffer Dl_CreateBuffer (int count, int size);
+void Dl_Init();
+
+void Dl_SetDefaultPixelSize (unsigned int size);
+
+DlBuffer Dl_CreateBuffer (int width, int height);
 void Dl_FreeBuffer (DlBuffer* buffer);
 
-DL_UChar Dl_BufferGet (DlBuffer* buffer, int index, int step);
-void Dl_BufferSet (DlBuffer* buffer, int index, int values, ...);
+DL_UChar Dl_BufferGetPixel (DlBuffer* buffer, int index, int step);
+DL_UChar Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step);
+void Dl_BufferSetPixel (DlBuffer* buffer, int index, ...);
+void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...);
 
-void Dl_SetBufferArea (DlBuffer* buffer, int area);
-void Dl_FillBuffer (DlBuffer* buffer, int values, ...);
+void Dl_SetBufferSize (DlBuffer* buffer, int width, int height);
+void Dl_FillBuffer (DlBuffer* buffer, ...);
 
 #endif
