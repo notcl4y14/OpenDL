@@ -13,6 +13,19 @@ typedef struct
 	int size;
 } DlBuffer;
 
+typedef struct
+{
+	DL_UChar* Dl_color;
+	int Dl_positionX;
+	int Dl_positionY;
+} DlShaderAttrs;
+
+typedef struct
+{
+	void (*code)(DlShaderAttrs*); // void* is supposed to be DlShader*
+	DlShaderAttrs attrs;
+} DlShader;
+
 static unsigned int __Dl_DefaultPixelSize = 1;
 
 void Dl_Init();
@@ -29,5 +42,12 @@ void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...);
 
 void Dl_SetBufferSize (DlBuffer* buffer, int width, int height);
 void Dl_FillBuffer (DlBuffer* buffer, ...);
+
+DlBuffer Dl_BufferApplyShader (DlBuffer* buffer, DlShader* shader);
+
+DlShader Dl_CreateShader ();
+void Dl_FreeShader (DlShader* shader);
+
+void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*));
 
 #endif

@@ -113,3 +113,56 @@ void Dl_FillBuffer (DlBuffer* buffer, ...)
 
 	va_end(args);
 }
+
+// ================================ //
+
+DlBuffer Dl_BufferApplyShader (DlBuffer* buffer, DlShader* shader)
+{
+	DlBuffer newBuffer = *buffer;
+
+	int index = -1;
+
+	while (++index < buffer->area)
+	{
+		int pixelIndex = index * buffer->size;
+		shader->attrs.Dl_positionX = index % buffer->width;
+		shader->attrs.Dl_positionY = index / buffer->width;
+		shader->attrs.Dl_color = &newBuffer.data[pixelIndex];
+
+		shader->code(&shader->attrs);
+		
+		int j = -1;
+
+		while (++j < newBuffer.size)
+		{
+			buffer->data[pixelIndex + j] = shader->attrs.Dl_color[j];
+		}
+	}
+
+	return newBuffer;
+}
+
+// ========================== //
+// ======== DlShader ======== //
+// ========================== //
+
+DlShader Dl_CreateShader ()
+{
+	DlShader shader;
+	
+	shader.code = NULL;
+	shader.attrs.Dl_color = NULL;
+	shader.attrs.Dl_positionX = 0;
+	shader.attrs.Dl_positionY = 0;
+	
+	return shader;
+}
+
+void Dl_FreeShader (DlShader* shader)
+{
+}
+
+void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*))
+{
+	shader->code = code;
+}
