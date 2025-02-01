@@ -6,9 +6,13 @@ Java Prototype: https://github.com/notcl4y14/JavaOpenDL
 
 ## Features
 
-### Surface
+### Buffer
 
-Surface is a 2D array that contains RGBA values (Basically, a Texture). It can be modified and applied to other Surfaces.
+Buffer is a 2D array that contains pixel values (Basically, a Texture). It can be modified and applied to other Buffers.
+
+### Shader
+
+Self-explanatory
 
 ### Planned Features
 
@@ -21,66 +25,42 @@ Surface is a 2D array that contains RGBA values (Basically, a Texture). It can b
 
 # Example Code "Sketches"
 
-```c++
+```c
 #include <DL.h>
 #include "shaders.h"
 
 int main ()
 {
-	DLInit();
+	DL_Init();
 
-	DLShader gradientShader = DLCreateShader();
-	DLShaderSource(gradientShader, SHADERS_GRADIENT);
-	DLShaderCompile();
+	DL_SetDefaultPixelSize(4);
 
-	if (DLShaderGetErrorCode() != 0)
+	// Creating Shader
+	DLShader gradientShader = DL_CreateShader();
+	DL_ShaderSource(gradientShader, SHADERS_GRADIENT);
+	DL_ShaderCompile();
+
+	if (DL_ShaderGetErrorCode() != 0)
 	{
-		throw DLShaderGetError();
+		return 1;
 	}
 	
-	DLSurface canvas = DLCreateSurface(800, 600);
-	DLBindSurface(canvas);
-	DLSurfaceFill( DLVec4(255, 255, 255, 255) );
+	// Creating Canvas
+	DLBuffer canvas = DL_CreateBuffer(800, 600);
+	DL_FillBuffer(&canvas, 255, 255, 255, 255);
 	
-	DLBindShader(gradientShader);
-	DLShaderSetAttrib("color1", DLVec4(255, 0, 0, 255));
-	DLShaderSetAttrib("color2", DLVec4(0, 0, 255, 255));
-	DLShaderSetAttrib("point1", DLVec2(0, 0));
-	DLShaderSetAttrib("point2", DLVec2(800, 0));
+	// Setting Shader Attributes
+	DL_ShaderSetAttrib("color1", 255, 0, 0, 255);
+	DL_ShaderSetAttrib("color2", 0, 0, 255, 255);
+	DL_ShaderSetAttrib("point1", 0, 0);
+	DL_ShaderSetAttrib("point2", 800, 0);
 
-	DLSurfaceApplyShader(gradientShader);
+	// Applying Shader to Canvas
+	DL_BufferApplyShader(&gradientShader);
 
 	// Present the Canvas
 	// ...
 
-	DLTerminate();
-}
-```
-```c++
-#include <DL.h>
-#include "shaders.h"
-
-int main ()
-{
-	DLShader gradientShader = DLShader();
-	gradientShader.setSource(SHADERS_GRADIENT);
-	
-	if (gradientShader.compile() != 0)
-	{
-		throw gradientShader.getError();
-	}
-
-	DLSurface canvas = DLSurface(800, 600);
-	canvas.fill( DLVec4(255, 255, 255, 255) );
-
-	gradientShader.setAttrib("color1", DLVec4(255, 0, 0, 255));
-	gradientShader.setAttrib("color2", DLVec4(0, 0, 255, 255));
-	gradientShader.setAttrib("point1", DLVec2(0, 0));
-	gradientShader.setAttrib("point2", DLVec2(800, 0));
-
-	canvas = canvas.applyShader(gradientShader);
-
-	// Present the Canvas
-	// ...
+	DL_Terminate();
 }
 ```
