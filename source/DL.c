@@ -53,10 +53,11 @@ void Dl_BufferSetPixel (DlBuffer* buffer, int index, ...)
 	va_start(args, index);
 
 	int i = -1;
+	int pixelIndex = index * buffer->size;
 
 	while (++i < buffer->size)
 	{
-		buffer->data[index + i] = va_arg(args, int);
+		buffer->data[pixelIndex + i] = va_arg(args, int);
 	}
 
 	va_end(args);
@@ -70,10 +71,11 @@ void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...)
 	int index = y * buffer->width + x;
 
 	int i = -1;
+	int pixelIndex = index * buffer->size;
 
 	while (++i < buffer->size)
 	{
-		buffer->data[index + i] = va_arg(args, int);
+		buffer->data[pixelIndex + i] = va_arg(args, int);
 	}
 
 	va_end(args);
@@ -142,6 +144,16 @@ DlBuffer Dl_BufferApplyShader (DlBuffer* buffer, DlShader* shader)
 	return newBuffer;
 }
 
+DlBuffer Dl_BufferApplyPath (DlBuffer* buffer, DlPath* path)
+{
+	DlBuffer newBuffer = *buffer;
+
+	path->attrs.buffer = &newBuffer;
+	path->code(&path->attrs);
+
+	return newBuffer;
+}
+
 // ========================== //
 // ======== DlShader ======== //
 // ========================== //
@@ -165,4 +177,27 @@ void Dl_FreeShader (DlShader* shader)
 void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*))
 {
 	shader->code = code;
+}
+
+// ======================== //
+// ======== DlPath ======== //
+// ======================== //
+
+DlPath Dl_CreatePath ()
+{
+	DlPath path;
+
+	path.code = NULL;
+	path.attrs.buffer = NULL;
+
+	return path;
+}
+
+void Dl_FreePath (DlPath* path)
+{
+}
+
+void Dl_PathBindCode (DlPath* path, void (*code) (DlPathAttrs*))
+{
+	path->code = code;
 }
