@@ -12,16 +12,21 @@ Buffer is a 2D array that contains pixel values (Basically, a Texture). It can b
 
 ### Shader
 
-Self-explanatory
+Shader is an object that modifies each pixel of the Buffer with given position and color. Useful for basic Texture coloring, effects, gradients, etc.
+
+### Path
+
+Somewhat similar to Shaders. Path is an object that directly modifies the Buffer. Meanwhile Shaders do it pixel-by-pixel. It's useful for generating complex Textures like Text rendering, Shadow rendering, Shape rendering, etc.
+
+Path Shaders, which are managed manually in the Path code, might become a feature.
 
 ### Planned Features
 
-- Shader
-- Path
+- Path Shader
 
 ## "OpenDL"?
 
-**OpenDL** stands for **Open Drawing Library**. Because, it's basically managing and drawing Surfaces.
+**OpenDL** stands for **Open Drawing Library**. Because, it's basically managing and drawing Buffers.
 
 # Example Code "Sketches"
 
