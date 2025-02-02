@@ -95,6 +95,39 @@ void Dl_SetBufferSize (DlBuffer* buffer, int width, int height)
 
 // ================================ //
 
+DlBuffer Dl_ClipBuffer (DlBuffer* buffer, int x1, int y1, int x2, int y2)
+{
+	DlBuffer newBuffer = Dl_CreateBuffer(x2 - x1, y2 - y1);
+
+	int x = x1;
+	int y = y1;
+
+	while (x < x2)
+	{
+		while (y < y2)
+		{
+			DL_UChar* color = &buffer->data[(y * buffer->width + x) * buffer->size];
+
+			int pixelX = x - x1;
+			int pixelY = y - y1;
+			int index = (pixelY * newBuffer.width + pixelX) * buffer->size;
+		
+			int j = -1;
+			while (++j < newBuffer.size)
+			{
+				newBuffer.data[index + j] = color[j];
+			}
+			
+			y++;
+		}
+
+		x++;
+		y = y1;
+	}
+
+	return newBuffer;
+}
+
 void Dl_FillBuffer (DlBuffer* buffer, ...)
 {
 	va_list args;
@@ -114,6 +147,36 @@ void Dl_FillBuffer (DlBuffer* buffer, ...)
 	}
 
 	va_end(args);
+}
+
+void Dl_DrawBuffer (DlBuffer* buffer, DlBuffer* srcBuffer, int x1, int y1, int x2, int y2)
+{
+	int width = x2 - x1;
+	int height = y2 - y1;
+	int area = width * height;
+
+	float widthFraction = srcBuffer->width / width;
+	float heightFraction = srcBuffer->height / height;
+
+	int index = 0;
+
+	while (index < area)
+	{
+		int x = index % width;
+		int y = index / width;
+		int pixelX = x * widthFraction;
+		int pixelY = y * heightFraction;
+
+		DL_UChar* color = &srcBuffer->data[(pixelY * srcBuffer->width + pixelX) * srcBuffer->size];
+		
+		int j = -1;
+		while (++j < buffer->size)
+		{
+			buffer->data[(y * buffer->width + x) * buffer->size + j] = color[j];
+		}
+		
+		index++;
+	}
 }
 
 // ================================ //

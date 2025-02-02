@@ -53,7 +53,9 @@ void Dl_BufferSetPixel (DlBuffer* buffer, int index, ...);
 void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...);
 
 void Dl_SetBufferSize (DlBuffer* buffer, int width, int height);
+DlBuffer Dl_ClipBuffer (DlBuffer* buffer, int x1, int y1, int x2, int y2);
 void Dl_FillBuffer (DlBuffer* buffer, ...);
+void Dl_DrawBuffer (DlBuffer* buffer, DlBuffer* srcBuffer, int x1, int y1, int x2, int y2);
 
 DlBuffer Dl_BufferApplyShader (DlBuffer* buffer, DlShader* shader);
 DlBuffer Dl_BufferApplyPath (DlBuffer* buffer, DlPath* path);
