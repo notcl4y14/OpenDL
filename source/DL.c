@@ -172,7 +172,9 @@ void Dl_DrawBuffer (DlBuffer* buffer, DlBuffer* srcBuffer, int x1, int y1, int x
 		int j = -1;
 		while (++j < buffer->size)
 		{
-			buffer->data[(y * buffer->width + x) * buffer->size + j] = color[j];
+			int rx = x + x1;
+			int ry = y + y1;
+			buffer->data[(ry * buffer->width + rx) * buffer->size + j] = color[j];
 		}
 		
 		index++;
