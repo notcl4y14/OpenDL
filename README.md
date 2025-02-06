@@ -23,6 +23,9 @@ Path Shaders, which are managed manually in the Path code, might become a featur
 ### Planned Features
 
 - Path Shader
+- Shader and Path attributes (might require a Map feature, which could be a very tiny bit heavy)
+- More functions for managing Buffers (probably)
+- Function Overloading (probably)
 
 ## "OpenDL"?
 
