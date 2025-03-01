@@ -12,7 +12,7 @@ void render (DlBuffer* buffer)
 			printf("\n");
 		}
 		
-		DL_UChar* color = &buffer->data[index * buffer->size];
+		DL_uchar* color = &buffer->data[index * buffer->size];
 
 		int r = color[0];
 		int g = color[1];

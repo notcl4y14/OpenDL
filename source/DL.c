@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+unsigned int __Dl_DefaultPixelSize = 1;
+
 void Dl_Init ()
 {
 	__Dl_DefaultPixelSize = 1;
@@ -25,7 +27,21 @@ DlBuffer Dl_CreateBuffer (int width, int height)
 	buffer.area = width * height;
 	buffer.size = __Dl_DefaultPixelSize;
 	buffer.count = buffer.area * buffer.size;
-	buffer.data = (DL_UChar*)calloc(buffer.count, sizeof(DL_UChar));
+	buffer.data = (DL_uchar*)calloc(buffer.count, sizeof(DL_uchar));
+
+	return buffer;
+}
+
+DlBuffer Dl_CreateBufferSize (int width, int height, int size)
+{
+	DlBuffer buffer;
+
+	buffer.width = width;
+	buffer.height = height;
+	buffer.area = width * height;
+	buffer.size = size;
+	buffer.count = buffer.area * buffer.size;
+	buffer.data = (DL_uchar*)calloc(buffer.count, sizeof(DL_uchar));
 
 	return buffer;
 }
@@ -37,12 +53,12 @@ void Dl_FreeBuffer (DlBuffer* buffer)
 
 // ================================ //
 
-DL_UChar Dl_BufferGetPixel (DlBuffer* buffer, int index, int step)
+DL_uchar* Dl_BufferGetPixel (DlBuffer* buffer, int index, int step)
 {
-	return buffer->data[index * buffer->size + step];
+	return &buffer->data[index * buffer->size + step];
 }
 
-DL_UChar Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step)
+DL_uchar* Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step)
 {
 	return Dl_BufferGetPixel(buffer, y * buffer->width + x, step);
 }
@@ -90,7 +106,7 @@ void Dl_SetBufferSize (DlBuffer* buffer, int width, int height)
 	buffer->area = width * height;
 	buffer->count = buffer->area * buffer->size;
 	free(buffer->data);
-	buffer->data = (DL_UChar*)calloc(buffer->count, sizeof(DL_UChar));
+	buffer->data = (DL_uchar*)calloc(buffer->count, sizeof(DL_uchar));
 }
 
 // ================================ //
@@ -106,7 +122,7 @@ DlBuffer Dl_ClipBuffer (DlBuffer* buffer, int x1, int y1, int x2, int y2)
 	{
 		while (y < y2)
 		{
-			DL_UChar* color = &buffer->data[(y * buffer->width + x) * buffer->size];
+			DL_uchar* color = &buffer->data[(y * buffer->width + x) * buffer->size];
 
 			int pixelX = x - x1;
 			int pixelY = y - y1;
@@ -167,7 +183,7 @@ void Dl_DrawBuffer (DlBuffer* buffer, DlBuffer* srcBuffer, int x1, int y1, int x
 		int pixelX = x * widthFraction;
 		int pixelY = y * heightFraction;
 
-		DL_UChar* color = &srcBuffer->data[(pixelY * srcBuffer->width + pixelX) * srcBuffer->size];
+		DL_uchar* color = &srcBuffer->data[(pixelY * srcBuffer->width + pixelX) * srcBuffer->size];
 		
 		int j = -1;
 		while (++j < buffer->size)

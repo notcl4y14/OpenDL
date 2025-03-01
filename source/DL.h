@@ -1,11 +1,11 @@
 #ifndef DL_H
 #define DL_H
 
-#define DL_UChar unsigned char
+#define DL_uchar unsigned char
 
 typedef struct
 {
-	DL_UChar* data;
+	DL_uchar* data;
 	int width;
 	int height;
 	int area;
@@ -15,7 +15,7 @@ typedef struct
 
 typedef struct
 {
-	DL_UChar* Dl_color;
+	DL_uchar* Dl_color;
 	int Dl_positionX;
 	int Dl_positionY;
 } DlShaderAttrs;
@@ -37,7 +37,7 @@ typedef struct
 	DlPathAttrs attrs;
 } DlPath;
 
-static unsigned int __Dl_DefaultPixelSize = 1;
+extern unsigned int __Dl_DefaultPixelSize;
 
 void Dl_Init();
 
@@ -45,10 +45,11 @@ void Dl_SetDefaultPixelSize (unsigned int size);
 
 // DlBuffer
 DlBuffer Dl_CreateBuffer (int width, int height);
+DlBuffer Dl_CreateBufferSize (int width, int height, int size);
 void Dl_FreeBuffer (DlBuffer* buffer);
 
-DL_UChar Dl_BufferGetPixel (DlBuffer* buffer, int index, int step);
-DL_UChar Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step);
+DL_uchar* Dl_BufferGetPixel (DlBuffer* buffer, int index, int step);
+DL_uchar* Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step);
 void Dl_BufferSetPixel (DlBuffer* buffer, int index, ...);
 void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...);
 
@@ -65,11 +66,15 @@ DlShader Dl_CreateShader ();
 void Dl_FreeShader (DlShader* shader);
 
 void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*));
+void Dl_SetShaderAttrib (DlShader* shader, char* attribute, void* value);
+void* Dl_GetShaderAttrib (DlShader* shader, char* attribute);
 
 // DlPath
 DlPath Dl_CreatePath ();
 void Dl_FreePath (DlPath* path);
 
 void Dl_PathBindCode (DlPath* path, void (*code) (DlPathAttrs*));
+void Dl_SetPathAttrib (DlPath* path, char* attribute, void* value);
+void* Dl_GetPathAttrib (DlPath* path, char* attribute);
 
 #endif

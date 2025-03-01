@@ -15,9 +15,9 @@ void render (DlBuffer* buffer)
 			printf("\n");
 		}
 
-		DL_UChar r = Dl_BufferGetPixel(buffer, index, 0);
-		DL_UChar g = Dl_BufferGetPixel(buffer, index, 1);
-		DL_UChar b = Dl_BufferGetPixel(buffer, index, 2);
+		DL_uchar r = *Dl_BufferGetPixel(buffer, index, 0);
+		DL_uchar g = *Dl_BufferGetPixel(buffer, index, 1);
+		DL_uchar b = *Dl_BufferGetPixel(buffer, index, 2);
 
 		int sum = r + g + b;
 
@@ -67,7 +67,7 @@ int main ()
 
 	Dl_SetDefaultPixelSize(4);
 
-	DlBuffer buffer = Dl_CreateBuffer(64, 32);
+	DlBuffer buffer = Dl_CreateBuffer(32, 16);
 	Dl_FillBuffer(&buffer, 0, 0, 0, 255);
 
 	printf("Before applying Path\n");
