@@ -18,6 +18,10 @@ typedef struct
 	DL_uchar* Dl_color;
 	int Dl_positionX;
 	int Dl_positionY;
+
+	int count;
+	char** ids;
+	int* values;
 } DlShaderAttrs;
 
 typedef struct
@@ -29,6 +33,10 @@ typedef struct
 typedef struct
 {
 	DlBuffer* buffer;
+
+	int count;
+	char** ids;
+	int* values;
 } DlPathAttrs;
 
 typedef struct
@@ -65,16 +73,24 @@ DlBuffer Dl_BufferApplyPath (DlBuffer* buffer, DlPath* path);
 DlShader Dl_CreateShader ();
 void Dl_FreeShader (DlShader* shader);
 
+void Dl_ShaderInit (DlShader* shader, int count);
 void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*));
-void Dl_SetShaderAttrib (DlShader* shader, char* attribute, void* value);
-void* Dl_GetShaderAttrib (DlShader* shader, char* attribute);
+void Dl_ShaderBindAttrib (DlShader* shader, char* id, int index);
+void Dl_SetShaderAttrib (DlShader* shader, int index, int value);
+void Dl_SetShaderAttribID (DlShader* shader, char* id, int value);
+int* Dl_GetShaderAttrib (DlShader* shader, int index);
+int* Dl_GetShaderAttribID (DlShader* shader, char* id);
 
 // DlPath
 DlPath Dl_CreatePath ();
 void Dl_FreePath (DlPath* path);
 
+void Dl_PathInit (DlPath* path, int count);
 void Dl_PathBindCode (DlPath* path, void (*code) (DlPathAttrs*));
-void Dl_SetPathAttrib (DlPath* path, char* attribute, void* value);
-void* Dl_GetPathAttrib (DlPath* path, char* attribute);
+void Dl_PathBindAttrib (DlPath* path, char* id, int index);
+void Dl_SetPathAttrib (DlPath* path, int index, int value);
+void Dl_SetPathAttribID (DlPath* path, char* id, int value);
+int* Dl_GetPathAttrib (DlPath* path, int index);
+int* Dl_GetPathAttribID (DlPath* path, char* id);
 
 #endif

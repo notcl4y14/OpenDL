@@ -247,6 +247,10 @@ DlShader Dl_CreateShader ()
 	shader.attrs.Dl_color = NULL;
 	shader.attrs.Dl_positionX = 0;
 	shader.attrs.Dl_positionY = 0;
+
+	shader.attrs.count = 0;
+	shader.attrs.ids = NULL;
+	shader.attrs.values = NULL;
 	
 	return shader;
 }
@@ -255,9 +259,65 @@ void Dl_FreeShader (DlShader* shader)
 {
 }
 
+void Dl_ShaderInit (DlShader* shader, int count)
+{
+	shader->attrs.count = count;
+	shader->attrs.ids = (char**)calloc(count, sizeof(char*));
+	shader->attrs.values = calloc(count, sizeof(int));
+}
+
 void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*))
 {
 	shader->code = code;
+}
+
+void Dl_ShaderBindAttrib (DlShader* shader, char* id, int index)
+{
+	shader->attrs.ids[index] = id;
+}
+
+void Dl_SetShaderAttrib (DlShader* shader, int index, int value)
+{
+	shader->attrs.values[index] = value;
+}
+
+void Dl_SetShaderAttribID (DlShader* shader, char* id, int value)
+{
+	int index = 0;
+
+	while (index < shader->attrs.count)
+	{
+		if (shader->attrs.ids[index] == id)
+		{
+			break;
+		}
+
+		index++;
+	}
+
+	shader->attrs.values[index] = value;
+}
+
+int* Dl_GetShaderAttrib (DlShader* shader, int index)
+{
+	return &shader->attrs.values[index];
+}
+
+int* Dl_GetShaderAttribID (DlShader* shader, char* id)
+{
+	int index = 0;
+
+	while (index < shader->attrs.count)
+	{
+		if (shader->attrs.ids[index] == id)
+		{
+			break;
+		}
+
+		index++;
+	}
+
+	return &shader->attrs.values[index];
 }
 
 // ======================== //
@@ -278,7 +338,63 @@ void Dl_FreePath (DlPath* path)
 {
 }
 
+void Dl_PathInit (DlPath* path, int count)
+{
+	path->attrs.count = count;
+	path->attrs.ids = (char**)calloc(count, sizeof(char*));
+	path->attrs.values = calloc(count, sizeof(int));
+}
+
 void Dl_PathBindCode (DlPath* path, void (*code) (DlPathAttrs*))
 {
 	path->code = code;
+}
+
+void Dl_PathBindAttrib (DlPath* path, char* id, int index)
+{
+	path->attrs.ids[index] = id;
+}
+
+void Dl_SetPathAttrib (DlPath* path, int index, int value)
+{
+	path->attrs.values[index] = value;
+}
+
+void Dl_SetPathAttribID (DlPath* path, char* id, int value)
+{
+	int index = 0;
+
+	while (index < path->attrs.count)
+	{
+		if (path->attrs.ids[index] == id)
+		{
+			break;
+		}
+
+		index++;
+	}
+
+	path->attrs.values[index] = value;
+}
+
+int* Dl_GetPathAttrib (DlPath* path, int index)
+{
+	return &path->attrs.values[index];
+}
+
+int* Dl_GetPathAttribID (DlPath* path, char* id)
+{
+	int index = 0;
+
+	while (index < path->attrs.count)
+	{
+		if (path->attrs.ids[index] == id)
+		{
+			break;
+		}
+
+		index++;
+	}
+
+	return &path->attrs.values[index];
 }
