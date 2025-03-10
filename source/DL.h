@@ -2,6 +2,10 @@
 #define DL_H
 
 #define DL_uchar unsigned char
+#define DL_uint unsigned int
+
+#define DL_TRUE 1
+#define DL_FALSE 0
 
 typedef struct
 {
@@ -9,9 +13,10 @@ typedef struct
 	int width;
 	int height;
 	int area;
-	int count;
-	int size;
-} DlBuffer;
+
+	int data_size;
+	int pixel_size;
+} DLBuffer;
 
 typedef struct
 {
@@ -20,77 +25,104 @@ typedef struct
 	int Dl_positionY;
 
 	int count;
-	char** ids;
-	int* values;
-} DlShaderAttrs;
+	char** attrs_keys;
+	void** attrs_values;
+} DLShaderAttrs;
 
 typedef struct
 {
-	void (*code)(DlShaderAttrs*); // void* is supposed to be DlShader*
-	DlShaderAttrs attrs;
-} DlShader;
+	void (*code)(DLShaderAttrs*);
+	DLShaderAttrs attrs;
+} DLShader;
 
 typedef struct
 {
-	DlBuffer* buffer;
+	DLBuffer* buffer;
 
 	int count;
-	char** ids;
-	int* values;
-} DlPathAttrs;
+	char** attrs_keys;
+	void** attrs_values;
+} DLPathAttrs;
 
 typedef struct
 {
-	void (*code)(DlPathAttrs*); // void* is supposed to be DlShader*
-	DlPathAttrs attrs;
-} DlPath;
+	void (*code)(DLPathAttrs*);
+	DLPathAttrs attrs;
+} DLPath;
 
-extern unsigned int __Dl_DefaultPixelSize;
+extern DL_uint __DL_bufferDefaultPixelSize;
 
-void Dl_Init();
+extern DLBuffer* __DL_buffers_values;
+extern DLShader* __DL_shaders_values;
+extern DLPath* __DL_paths_values;
 
-void Dl_SetDefaultPixelSize (unsigned int size);
+extern DL_uint __DL_buffers_count;
+extern DL_uint __DL_shaders_count;
+extern DL_uint __DL_paths_count;
+
+extern DL_uint* __DL_buffers_firstAvailable_values;
+extern DL_uint* __DL_shaders_firstAvailable_values;
+extern DL_uint* __DL_paths_firstAvailable_values;
+
+extern DL_uint __DL_buffers_firstAvailable_count;
+extern DL_uint __DL_shaders_firstAvailable_count;
+extern DL_uint __DL_paths_firstAvailable_count;
+
+extern DL_uint __DL_buffers_capacity;
+extern DL_uint __DL_shaders_capacity;
+extern DL_uint __DL_paths_capacity;
+
+void dlInit();
+void dlTerminate();
+
+void dlBufferDefaultPixelSize (DL_uint size);
 
 // DlBuffer
-DlBuffer Dl_CreateBuffer (int width, int height);
-DlBuffer Dl_CreateBufferSize (int width, int height, int size);
-void Dl_FreeBuffer (DlBuffer* buffer);
+DL_uint dlCreateBuffer (int width, int height);
+DL_uint dlCreateBufferSize (int width, int height, int size);
+void dlFreeBuffer (DL_uint buffer);
 
-DL_uchar* Dl_BufferGetPixel (DlBuffer* buffer, int index, int step);
-DL_uchar* Dl_BufferGetPixelAt (DlBuffer* buffer, int x, int y, int step);
-void Dl_BufferSetPixel (DlBuffer* buffer, int index, ...);
-void Dl_BufferSetPixelAt (DlBuffer* buffer, int x, int y, ...);
+DLBuffer* dlGetBuffer (DL_uint buffer);
 
-void Dl_SetBufferSize (DlBuffer* buffer, int width, int height);
-DlBuffer Dl_ClipBuffer (DlBuffer* buffer, int x1, int y1, int x2, int y2);
-void Dl_FillBuffer (DlBuffer* buffer, ...);
-void Dl_DrawBuffer (DlBuffer* buffer, DlBuffer* srcBuffer, int x1, int y1, int x2, int y2);
+DL_uchar* dlBufferGetPixel (DL_uint buffer, int index, int step);
+DL_uchar* dlBufferGetPixelAt (DL_uint buffer, int x, int y, int step);
+void dlBufferSetPixel (DL_uint buffer, int index, DL_uchar* value);
+void dlBufferSetPixelAt (DL_uint buffer, int x, int y, DL_uchar* value);
 
-DlBuffer Dl_BufferApplyShader (DlBuffer* buffer, DlShader* shader);
-DlBuffer Dl_BufferApplyPath (DlBuffer* buffer, DlPath* path);
+void dlSetBufferDimensions (DL_uint buffer, int width, int height);
+DL_uint dlClipBuffer (DL_uint buffer, int x1, int y1, int x2, int y2);
+void dlFillBuffer (DL_uint buffer, DL_uchar* value);
+void dlDrawBuffer (DL_uint destBuffer, DL_uint srcBuffer, int x1, int y1, int x2, int y2);
+
+void dlBufferApplyShader (DL_uint buffer, DL_uint shader);
+void dlBufferApplyPath (DL_uint buffer, DL_uint path);
 
 // DlShader
-DlShader Dl_CreateShader ();
-void Dl_FreeShader (DlShader* shader);
+DL_uint dlCreateShader ();
+void dlFreeShader (DL_uint shader);
 
-void Dl_ShaderInit (DlShader* shader, int count);
-void Dl_ShaderBindCode (DlShader* shader, void (*code) (DlShaderAttrs*));
-void Dl_ShaderBindAttrib (DlShader* shader, char* id, int index);
-void Dl_SetShaderAttrib (DlShader* shader, int index, int value);
-void Dl_SetShaderAttribID (DlShader* shader, char* id, int value);
-int* Dl_GetShaderAttrib (DlShader* shader, int index);
-int* Dl_GetShaderAttribID (DlShader* shader, char* id);
+DLShader* dlGetShader (DL_uint shader);
+
+void dlShaderInit (DL_uint shader, int count);
+void dlShaderBindCode    (DL_uint shader, void (*code) (DLShaderAttrs*));
+void dlShaderBindAttrib  (DL_uint shader, char* id, int index);
+void dlSetShaderAttrib   (DL_uint shader, int index, void* value);
+void dlSetShaderAttribID (DL_uint shader, char* id, void* value);
+void* dlGetShaderAttrib   (DL_uint shader, int index);
+void* dlGetShaderAttribID (DL_uint shader, char* id);
 
 // DlPath
-DlPath Dl_CreatePath ();
-void Dl_FreePath (DlPath* path);
+DL_uint dlCreatePath ();
+void dlFreePath (DL_uint path);
 
-void Dl_PathInit (DlPath* path, int count);
-void Dl_PathBindCode (DlPath* path, void (*code) (DlPathAttrs*));
-void Dl_PathBindAttrib (DlPath* path, char* id, int index);
-void Dl_SetPathAttrib (DlPath* path, int index, int value);
-void Dl_SetPathAttribID (DlPath* path, char* id, int value);
-int* Dl_GetPathAttrib (DlPath* path, int index);
-int* Dl_GetPathAttribID (DlPath* path, char* id);
+DLPath* dlGetPath (DL_uint path);
+
+void dlPathInit (DL_uint path, int count);
+void dlPathBindCode    (DL_uint path, void (*code) (DLPathAttrs*));
+void dlPathBindAttrib  (DL_uint path, char* id, int index);
+void dlSetPathAttrib   (DL_uint path, int index, void* value);
+void dlSetPathAttribID (DL_uint path, char* id, void* value);
+void* dlGetPathAttrib   (DL_uint path, int index);
+void* dlGetPathAttribID (DL_uint path, char* id);
 
 #endif
