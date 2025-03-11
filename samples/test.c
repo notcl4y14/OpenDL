@@ -1,49 +1,48 @@
 #include <stdio.h>
 #include <DL.h>
 
+void print_buffer (DL_uint buffer);
+
 int main ()
 {
 	printf("Initializing DL...\n\n");
 	dlInit();
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("__DL_buffers_firstAvailable_count: %d\n", __DL_buffers_firstAvailable_count);
-	printf("__DL_buffers_firstAvailable_values[0]: %d\n", __DL_buffers_firstAvailable_values[0]);
-	printf("__DL_buffers_count: %d\n\n", __DL_buffers_count);
 
 	printf("Creating 32x32 buffer...\n\n");
-	DL_uint buffer = dlCreateBuffer(32, 32);
+	DL_uint buffer1 = dlCreateBuffer(32, 32);
 
-	DLBuffer* _buffer = dlGetBuffer(buffer);
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("__DL_buffers_firstAvailable_count: %d\n", __DL_buffers_firstAvailable_count);
-	printf("__DL_buffers_firstAvailable_values[0]: %d\n", __DL_buffers_firstAvailable_values[0]);
+	print_buffer(buffer1);
+	printf("\n");
 
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("buffer.width: %d\n", _buffer->width);
-	printf("buffer.height: %d\n\n", _buffer->height);
+	printf("Creating 512x512 buffer...\n\n");
+	DL_uint buffer2 = dlCreateBuffer(512, 512);
 
-	printf("Freeing buffer...\n\n");
-	dlFreeBuffer(buffer);
+	print_buffer(buffer2);
+	printf("\n");
 
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("__DL_buffers_firstAvailable_count: %d\n", __DL_buffers_firstAvailable_count);
-	printf("__DL_buffers_firstAvailable_values[0]: %d\n", __DL_buffers_firstAvailable_values[0]);
+	printf("Freeing buffers...\n\n");
+	dlFreeBuffer(buffer1);
+	dlFreeBuffer(buffer2);
 
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("buffer.width: %d\n", _buffer->width);
-	printf("buffer.height: %d\n\n", _buffer->height);
+	print_buffer(buffer1);
+	printf("\n");
+
+	print_buffer(buffer2);
+	printf("\n");
 
 	printf("Terminating DL...\n\n");
 	dlTerminate();
 
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("__DL_buffers_firstAvailable_count: %d\n", __DL_buffers_firstAvailable_count);
-	printf("__DL_buffers_firstAvailable_values[0]: %d\n", __DL_buffers_firstAvailable_values[0]);
-
-	printf("__DL_buffers_count: %d\n", __DL_buffers_count);
-	printf("buffer.width: %d\n", _buffer->width);
-	printf("buffer.height: %d\n\n", _buffer->height);
-
 	printf("Done!\n");
 	return 0;
+}
+
+void print_buffer (DL_uint buffer)
+{
+	DLBuffer* _buffer = dlGetBuffer(buffer);
+	printf("Buffer (0x%x)\n", (unsigned int)_buffer);
+	printf("- Dimensions: %dx%d\n", _buffer->width, _buffer->height);
+	printf("- Area: %dB\n", _buffer->area);
+	printf("- Data Size: %dB\n", _buffer->data_size);
+	printf("- Pixel Size: %dB\n", _buffer->pixel_size);
 }
