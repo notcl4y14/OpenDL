@@ -118,6 +118,21 @@ void dlInitialArraysCapacity (DL_uint size)
 	__DL_paths_capacity = size;
 }
 
+void dlInitialBufferArrayCapacity (DL_uint size)
+{
+	__DL_buffers_capacity = size;
+}
+
+void dlInitialShaderArrayCapacity (DL_uint size)
+{
+	__DL_shaders_capacity = size;
+}
+
+void dlInitialPathArrayCapacity (DL_uint size)
+{
+	__DL_paths_capacity = size;
+}
+
 // ========================== //
 // ======== DLBuffer ======== //
 // ========================== //
@@ -183,16 +198,6 @@ DL_uchar* dlBufferGetData (DL_uint buffer)
 {
 	return __DL_buffers_values[buffer].data;
 }
-
-// int[2] dlBufferGetDimensions (DL_uint buffer)
-// {
-// 	int[2] dimensions = {0, 0};
-// 	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-// 	dimensions[0] = _buffer->width;
-// 	dimensions[1] = _buffer->height;
-
-// 	return dimensions;
-// }
 
 int dlBufferGetWidth (DL_uint buffer)
 {

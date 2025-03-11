@@ -68,6 +68,9 @@ void dlTerminate();
 
 void dlBufferDefaultPixelSize (DL_uint size);
 void dlInitialArraysCapacity (DL_uint size);
+void dlInitialBufferArrayCapacity (DL_uint size);
+void dlInitialShaderArrayCapacity (DL_uint size);
+void dlInitialPathArrayCapacity (DL_uint size);
 
 // DlBuffer
 DL_uint dlCreateBuffer (int width, int height);
@@ -77,7 +80,6 @@ void dlFreeBuffer (DL_uint buffer);
 DLBuffer* dlGetBuffer (DL_uint buffer);
 
 DL_uchar* dlBufferGetData (DL_uint buffer);
-// int[2]    dlBufferGetDimensions (DL_uint buffer);
 int       dlBufferGetWidth (DL_uint buffer);
 int       dlBufferGetHeight (DL_uint buffer);
 int       dlBufferGetArea (DL_uint buffer);
