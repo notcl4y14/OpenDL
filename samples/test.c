@@ -1,33 +1,44 @@
 #include <stdio.h>
 #include <DL.h>
 
-void print_buffer (DL_uint buffer);
+void print_shader (DLUInt shader);
 
 int main ()
 {
 	printf("Initializing DL...\n\n");
 	dlInit();
 
-	printf("Creating 32x32 buffer...\n\n");
-	DL_uint buffer1 = dlCreateBuffer(32, 32);
+	printf("Creating a DLShader...\n\n");
+	DLUInt shader = dlCreateShader();
 
-	print_buffer(buffer1);
+	printf("Initializing a DLShader...\n\n");
+	dlShaderInit(shader, 4, 1);
+
+	dlShaderBindAttribID(shader, "multiplier", 0);
+	dlShaderBindAttribID(shader, "color", 1);
+	dlShaderBindAttribID(shader, "corners", 2);
+	dlShaderBindAttribID(shader, "sides", 3);
+
+	printf("Binding DLShader's attributes...\n\n");
+	int shader_attribs[4] =
+	{
+		4, 0xFFFF00, 1, 1,
+	};
+
+	dlShaderBindUniformAttrib(shader, dlShaderGetAttribIndex(shader, "multiplier"), &shader_attribs[0]);
+	dlShaderBindUniformAttrib(shader, dlShaderGetAttribIndex(shader, "color"), &shader_attribs[1]);
+	dlShaderBindUniformAttrib(shader, dlShaderGetAttribIndex(shader, "corners"), &shader_attribs[2]);
+	dlShaderBindUniformAttrib(shader, dlShaderGetAttribIndex(shader, "sides"), &shader_attribs[3]);
+
+	dlShaderBindBufferAttrib(shader, &shader_attribs, 0, sizeof(int), 0);
+
+	print_shader(shader);
 	printf("\n");
 
-	printf("Creating 512x512 buffer...\n\n");
-	DL_uint buffer2 = dlCreateBuffer(512, 512);
+	printf("Freeing Shader...\n\n");
+	dlFreeShader(shader);
 
-	print_buffer(buffer2);
-	printf("\n");
-
-	printf("Freeing buffers...\n\n");
-	dlFreeBuffer(buffer1);
-	dlFreeBuffer(buffer2);
-
-	print_buffer(buffer1);
-	printf("\n");
-
-	print_buffer(buffer2);
+	print_shader(shader);
 	printf("\n");
 
 	printf("Terminating DL...\n\n");
@@ -37,12 +48,76 @@ int main ()
 	return 0;
 }
 
-void print_buffer (DL_uint buffer)
+void print_shader (DLUInt shader)
 {
-	DLBuffer* _buffer = dlGetBuffer(buffer);
-	printf("Buffer (0x%x)\n", (unsigned int)_buffer);
-	printf("- Dimensions: %dx%d\n", _buffer->width, _buffer->height);
-	printf("- Area: %dB\n", _buffer->area);
-	printf("- Data Size: %dB\n", _buffer->data_size);
-	printf("- Pixel Size: %dB\n", _buffer->pixel_size);
+	DLShader* _shader = &_DL_shaders_values[shader];
+
+	printf("DLShader (0x%x)\n", (DLUChar*)_shader);
+	printf("- Attribs Capacity: %d\n", _shader->attrs_capacity);
+	printf("- Attribs:");
+
+	if (_shader->attrs_capacity == 0)
+	{
+		printf(" None\n");
+	}
+	else
+	{
+		printf("\n");
+	}
+
+	for (int i = 0; i < _shader->attrs_capacity; i++)
+	{
+		// printf("	- %d. %s: %d (0x%x)\n", i, _shader->attrs_keys[i], *(int*)_shader->attrs_values[i], &_shader->attrs_values[i]);
+		printf("	- %d. ", i);
+
+		if (_shader->attrs_keys[i] == NULL)
+		{
+			printf("*unbound*");
+		}
+		else
+		{
+			printf("%s", _shader->attrs_keys[i]);
+		}
+
+		printf(": ");
+
+		if (_shader->attrs_values[i] == NULL)
+		{
+			printf("null");
+		}
+		else
+		{
+			printf("%d", *(long*)_shader->attrs_values[i]);
+		}
+
+		printf("\n");
+	}
+
+	printf("- Buffer Attribs Capacity: %d\n", _shader->buf_attrs_capacity);
+	printf("- Buffer Attribs Count: %d\n", _shader->buf_attrs_count);
+	printf("- Buffer Attribs:");
+
+	if (_shader->buf_attrs_count == 0)
+	{
+		printf(" None\n");
+	}
+	else
+	{
+		printf("\n");
+		printf("	     Buffer\tvOffset\tvSize\tAttrib\n");
+	}
+
+	for (int i = 0; i < _shader->buf_attrs_count; i++)
+	{
+		printf(
+			"	- %d. 0x%x\t%d\t%d\t%d",
+			i,
+			&_shader->buf_attrs_buffers[i],
+			_shader->buf_attrs_voffset[i],
+			_shader->buf_attrs_vsize[i],
+			_shader->buf_attrs_attribs[i]
+		);
+
+		printf("\n");
+	}
 }

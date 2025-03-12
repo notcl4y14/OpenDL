@@ -1,82 +1,74 @@
-#include "DL.h"
 #include <stdlib.h>
-#include <stdarg.h>
+#include <string.h>
 
-#define _DL_DEFAULT_ARRAYS_CAPACITY 16
+#include <DL.h>
 
-DL_uint __DL_bufferDefaultPixelSize;
+struct DLShader* _DL_shaders_values;
+struct DLPath*   _DL_paths_values;
 
-DLBuffer* __DL_buffers_values;
-DLShader* __DL_shaders_values;
-DLPath* __DL_paths_values;
+DLUInt _DL_shaders_count;
+DLUInt _DL_paths_count;
 
-DL_uint __DL_buffers_count;
-DL_uint __DL_shaders_count;
-DL_uint __DL_paths_count;
-
-DL_uint __DL_buffers_capacity = _DL_DEFAULT_ARRAYS_CAPACITY;
-DL_uint __DL_shaders_capacity = _DL_DEFAULT_ARRAYS_CAPACITY;
-DL_uint __DL_paths_capacity = _DL_DEFAULT_ARRAYS_CAPACITY;
+DLUInt _DL_shaders_capacity = 16;
+DLUInt _DL_paths_capacity = 16;
 
 // ====================== //
 // ======== Util ======== //
 // ====================== //
 
-int buffer_getFirstAvailable ()
+struct DLShader* shader_get (DLUInt shader)
 {
-	int index = -1;
+	return &_DL_shaders_values[shader];
+}
 
-	while (++index < __DL_buffers_count)
-	{
-		if (__DL_buffers_values[index].data_size == 0)
-		{
-			return index;
-		}
-	}
-
-	__DL_buffers_capacity = __DL_buffers_capacity * 2;
-	__DL_buffers_values = realloc(__DL_buffers_values, __DL_buffers_capacity * sizeof(DLBuffer));
-
-	return index;
+struct DLPath* path_get (DLUInt path)
+{
+	return &_DL_paths_values[path];
 }
 
 int shader_getFirstAvailable ()
 {
 	int index = -1;
 
-	while (++index < __DL_shaders_count)
+	while (++index < _DL_shaders_capacity)
 	{
-		if (__DL_shaders_values[index].code == NULL)
+		if (_DL_shaders_values[index].attrs_capacity == 0)
 		{
 			break;
 		}
 	}
 
-	__DL_shaders_capacity = __DL_shaders_capacity * 2;
-	__DL_shaders_values = realloc(__DL_shaders_values, __DL_shaders_capacity * sizeof(DLShader));
+	if (index == _DL_shaders_capacity)
+	{
+		_DL_shaders_capacity = _DL_shaders_capacity * 2;
+		_DL_shaders_values = realloc(_DL_shaders_values, _DL_shaders_capacity * sizeof(struct DLShader));
+		return shader_getFirstAvailable();
+	}
 
 	return index;
 }
-
 
 int path_getFirstAvailable ()
 {
 	int index = -1;
 
-	while (++index < __DL_paths_count)
+	while (++index < _DL_paths_capacity)
 	{
-		if (__DL_paths_values[index].code == NULL)
+		if (_DL_paths_values[index].attrs_capacity == 0)
 		{
 			break;
 		}
 	}
 
-	__DL_paths_capacity = __DL_paths_capacity * 2;
-	__DL_paths_values = realloc(__DL_paths_values, __DL_paths_capacity * sizeof(DLPath));
+	if (index == _DL_paths_capacity)
+	{
+		_DL_paths_capacity = _DL_paths_capacity * 2;
+		_DL_paths_values = realloc(_DL_paths_values, _DL_paths_capacity * sizeof(struct DLPath));
+		return path_getFirstAvailable();
+	}
 
 	return index;
 }
-
 
 // ==================== //
 // ======== DL ======== //
@@ -84,598 +76,222 @@ int path_getFirstAvailable ()
 
 void dlInit ()
 {
-	__DL_bufferDefaultPixelSize = 1;
+	_DL_shaders_values = calloc(_DL_shaders_capacity, sizeof(struct DLShader));
+	_DL_paths_values = calloc(_DL_paths_capacity, sizeof(struct DLPath));
 
-	__DL_buffers_values = calloc(__DL_buffers_capacity, sizeof(DLBuffer));
-	__DL_shaders_values = calloc(__DL_shaders_capacity, sizeof(DLShader));
-	__DL_paths_values = calloc(__DL_paths_capacity, sizeof(DLPath));
-
-	__DL_buffers_count = 0;
-	__DL_shaders_count = 0;
-	__DL_paths_count = 0;
+	_DL_shaders_count = 0;
+	_DL_paths_count = 0;
 }
 
 void dlTerminate ()
 {
-	__DL_buffers_count = 0;
-	__DL_shaders_count = 0;
-	__DL_paths_count = 0;
+	_DL_shaders_count = 0;
+	_DL_paths_count = 0;
 
-	free(__DL_buffers_values);
-	free(__DL_shaders_values);
-	free(__DL_paths_values);
-}
-
-void dlBufferDefaultPixelSize (DL_uint size)
-{
-	__DL_bufferDefaultPixelSize = size;
-}
-
-void dlInitialArraysCapacity (DL_uint size)
-{
-	__DL_buffers_capacity = size;
-	__DL_shaders_capacity = size;
-	__DL_paths_capacity = size;
-}
-
-void dlInitialBufferArrayCapacity (DL_uint size)
-{
-	__DL_buffers_capacity = size;
-}
-
-void dlInitialShaderArrayCapacity (DL_uint size)
-{
-	__DL_shaders_capacity = size;
-}
-
-void dlInitialPathArrayCapacity (DL_uint size)
-{
-	__DL_paths_capacity = size;
-}
-
-// ========================== //
-// ======== DLBuffer ======== //
-// ========================== //
-
-DL_uint dlCreateBuffer (int width, int height)
-{
-	DLBuffer buffer;
-
-	buffer.width = width;
-	buffer.height = height;
-	buffer.area = width * height;
-	buffer.pixel_size = __DL_bufferDefaultPixelSize;
-	buffer.data_size = buffer.area * buffer.pixel_size;
-	buffer.data = calloc(buffer.data_size, sizeof(DL_uchar));
-
-	int id = buffer_getFirstAvailable();
-	__DL_buffers_values[id] = buffer;
-	__DL_buffers_count++;
-
-	return id;
-}
-
-DL_uint dlCreateBufferSize (int width, int height, int size)
-{
-	DLBuffer buffer;
-
-	buffer.width = width;
-	buffer.height = height;
-	buffer.area = width * height;
-	buffer.pixel_size = size;
-	buffer.data_size = buffer.area * buffer.pixel_size;
-	buffer.data = calloc(buffer.data_size, sizeof(DL_uchar));
-
-	int id = buffer_getFirstAvailable();
-	__DL_buffers_values[id] = buffer;
-	__DL_buffers_count++;
-	
-	return id;
-}
-
-void dlFreeBuffer (DL_uint buffer)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-	free(_buffer->data);
-	_buffer->width = 0;
-	_buffer->height = 0;
-	_buffer->area = 0;
-	_buffer->data_size = 0;
-	_buffer->pixel_size = 0;
-	__DL_buffers_count--;
-}
-
-// ================================ //
-
-DLBuffer* dlGetBuffer (DL_uint buffer)
-{
-	return &__DL_buffers_values[buffer];
-}
-
-// ================================ //
-
-DL_uchar* dlBufferGetData (DL_uint buffer)
-{
-	return __DL_buffers_values[buffer].data;
-}
-
-int dlBufferGetWidth (DL_uint buffer)
-{
-	return __DL_buffers_values[buffer].width;
-}
-
-int dlBufferGetHeight (DL_uint buffer)
-{
-	return __DL_buffers_values[buffer].height;
-}
-
-int dlBufferGetArea (DL_uint buffer)
-{
-	return __DL_buffers_values[buffer].area;
-}
-
-int dlBufferGetDataSize (DL_uint buffer)
-{
-	return __DL_buffers_values[buffer].data_size;
-}
-
-int dlBufferGetPixelSize (DL_uint buffer)
-{
-	return __DL_buffers_values[buffer].pixel_size;
-}
-
-// ================================ //
-
-void dlBufferSetDimensions (DL_uint buffer, int width, int height)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-
-	_buffer->width = width;
-	_buffer->height = height;
-	_buffer->area = width * height;
-	_buffer->data_size = _buffer->area * _buffer->pixel_size;
-	free(_buffer->data);
-	_buffer->data = calloc(_buffer->data_size, sizeof(DL_uchar));
-}
-
-void dlBufferSetPixelSize (DL_uint buffer, int size)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-
-	_buffer->pixel_size = size;
-	_buffer->data_size = _buffer->area * _buffer->pixel_size;
-	_buffer->data = realloc(_buffer->data, _buffer->data_size * sizeof(DL_uchar));
-}
-
-// ================================ //
-
-DL_uchar* dlBufferGetPixel (DL_uint buffer, int index, int step)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-	return &_buffer->data[index * _buffer->pixel_size + step];
-}
-
-DL_uchar* dlBufferGetPixelAt (DL_uint buffer, int x, int y, int step)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-	return &_buffer->data[(y * _buffer->width + x) * _buffer->pixel_size + step];
-}
-
-void dlBufferSetPixel (DL_uint buffer, int index, DL_uchar* value)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-
-	int i = -1;
-	int pixelIndex = index * _buffer->pixel_size;
-
-	while (++i < _buffer->pixel_size)
+	for (int i = 0; i < _DL_shaders_capacity; i++)
 	{
-		_buffer->data[pixelIndex + i] = value[i];
-	}
-}
-
-void dlBufferSetPixelAt (DL_uint buffer, int x, int y, DL_uchar* value)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-
-	int i = -1;
-	int pixelIndex = (y * _buffer->width + x) * _buffer->pixel_size;
-
-	while (++i < _buffer->pixel_size)
-	{
-		_buffer->data[pixelIndex + i] = value[i];
-	}
-}
-
-// ================================ //
-
-DL_uint dlClipBuffer (DL_uint buffer, int x1, int y1, int x2, int y2)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-	// DLBuffer newBuffer = dlCreateBuffer(x2 - x1, y2 - y1);
-	DLBuffer newBuffer;
-
-	newBuffer.width = x2 - x1;
-	newBuffer.height = y2 - y1;
-	newBuffer.area = newBuffer.width * newBuffer.height;
-	newBuffer.pixel_size = _buffer->pixel_size;
-	newBuffer.data_size = newBuffer.area * newBuffer.pixel_size;
-	newBuffer.data = calloc(newBuffer.data_size, sizeof(DL_uchar));
-
-	int x = x1;
-	int y = y1;
-
-	while (x < x2)
-	{
-		while (y < y2)
+		if (_DL_shaders_values[i].attrs_capacity == 0)
 		{
-			DL_uchar* color = &_buffer->data[(y * _buffer->width + x) * _buffer->pixel_size];
-
-			int pixelX = x - x1;
-			int pixelY = y - y1;
-			int index = (pixelY * newBuffer.width + pixelX) * _buffer->pixel_size;
-		
-			int j = -1;
-			while (++j < newBuffer.pixel_size)
-			{
-				newBuffer.data[index + j] = color[j];
-			}
-			
-			y++;
+			continue;
 		}
 
-		x++;
-		y = y1;
+		dlFreeShader(i);
 	}
 
-	int id = buffer_getFirstAvailable();
-	__DL_buffers_values[id] = newBuffer;
-	__DL_buffers_count++;
-	
-	return id;
-}
-
-void dlFillBuffer (DL_uint buffer, DL_uchar* color)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-
-	int index = -1;
-
-	while (++index < _buffer->data_size)
+	for (int i = 0; i < _DL_paths_capacity; i++)
 	{
-		_buffer->data[index] = color[index % _buffer->pixel_size];
-	}
-}
-
-void dlDrawBuffer (DL_uint destBuffer, DL_uint srcBuffer, int x1, int y1, int x2, int y2)
-{
-	DLBuffer* _destBuffer = &__DL_buffers_values[destBuffer];
-	DLBuffer* _srcBuffer = &__DL_buffers_values[srcBuffer];
-
-	int width = x2 - x1;
-	int height = y2 - y1;
-	int area = width * height;
-
-	float widthFraction = _srcBuffer->width / width;
-	float heightFraction = _srcBuffer->height / height;
-
-	int index = 0;
-
-	while (index < area)
-	{
-		int x = index % width;
-		int y = index / width;
-		int pixelX = x * widthFraction;
-		int pixelY = y * heightFraction;
-
-		DL_uchar* color = &_srcBuffer->data[(pixelY * _srcBuffer->width + pixelX) * _srcBuffer->pixel_size];
-		
-		int rx = x + x1;
-		int ry = y + y1;
-		int ri = (ry * _destBuffer->width + rx) * _destBuffer->pixel_size;
-
-		int color_index = -1;
-		while (++color_index < _destBuffer->pixel_size)
+		if (_DL_paths_values[i].attrs_capacity == 0)
 		{
-			_destBuffer->data[ri + color_index] = color[color_index];
+			continue;
 		}
-		
-		index++;
+
+		dlFreePath(i);
 	}
+
+	free(_DL_shaders_values);
+	free(_DL_paths_values);
 }
 
-// ================================ //
-
-void dlBufferApplyShader (DL_uint buffer, DL_uint shader)
+void dlInitialArrayCapacity (DLUInt object, DLUInt capacity)
 {
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-	DLShader* _shader = &__DL_shaders_values[shader];
-
-	DLBuffer newBuffer = *_buffer;
-
-	int index = -1;
-
-	while (++index < _buffer->area)
+	switch (object)
 	{
-		int pixelIndex = index * _buffer->pixel_size;
-		_shader->attrs.pixel_coord[0] = index % _buffer->width;
-		_shader->attrs.pixel_coord[1] = index / _buffer->width;
-		_shader->attrs.pixel_color = &newBuffer.data[pixelIndex];
+		case DL_OBJECT_SHADER:
+			_DL_shaders_capacity = capacity;
+			break;
 
-		_shader->code(&_shader->attrs);
-		
-		int j = -1;
+		case DL_OBJECT_PATH:
+			_DL_paths_capacity = capacity;
+			break;
 
-		while (++j < newBuffer.pixel_size)
-		{
-			_buffer->data[pixelIndex + j] = _shader->attrs.pixel_color[j];
-		}
+		case DL_OBJECT_ALL:
+			_DL_shaders_capacity = capacity;
+			_DL_paths_capacity = capacity;
+			break;
 	}
-
-	*_buffer = newBuffer;
-}
-
-void dlBufferApplyPath (DL_uint buffer, DL_uint path)
-{
-	DLBuffer* _buffer = &__DL_buffers_values[buffer];
-	DLPath* _path = &__DL_paths_values[path];
-
-	DLBuffer newBuffer = *_buffer;
-
-	_path->attrs.buffer = &newBuffer;
-	_path->code(&_path->attrs);
-
-	*_buffer = newBuffer;
 }
 
 // ========================== //
 // ======== DLShader ======== //
 // ========================== //
 
-DL_uint dlCreateShader ()
+DLUInt dlCreateShader ()
 {
-	DLShader shader;
-	
-	shader.code = NULL;
-	shader.attrs.pixel_color = NULL;
-	shader.attrs.pixel_coord[0] = 0;
-	shader.attrs.pixel_coord[1] = 0;
+	struct DLShader shader;
 
-	shader.attrs.attrs_count = 0;
-	shader.attrs.attrs_keys = NULL;
-	shader.attrs.attrs_values = NULL;
+	// shader.attrs_count = 0;
+	shader.attrs_capacity = 0;
+	shader.attrs_keys = NULL;
+	shader.attrs_values = NULL;
 
-	int id = shader_getFirstAvailable();
-	__DL_shaders_values[id] = shader;
-	__DL_shaders_count++;
-	
-	return id;
+	int index = shader_getFirstAvailable();
+	_DL_shaders_values[index] = shader;
+	_DL_shaders_count++;
+
+	return index;
 }
 
-void dlFreeShader (DL_uint shader)
+void dlFreeShader (DLUInt shader)
 {
-	DLShader* _shader = &__DL_shaders_values[shader];
-	_shader->code = NULL;
-	free(_shader->attrs.pixel_color);
-	_shader->attrs.pixel_color = NULL;
-	_shader->attrs.pixel_coord[0] = 0;
-	_shader->attrs.pixel_coord[1] = 0;
-	_shader->attrs.attrs_count = 0;
-	free(_shader->attrs.attrs_keys);
-	free(_shader->attrs.attrs_values);
-	_shader->attrs.attrs_keys = NULL;
-	_shader->attrs.attrs_values = NULL;
-	__DL_shaders_count--;
-}
+	struct DLShader* _shader = &_DL_shaders_values[shader];
 
-// ================================ //
-
-DLShader* dlGetShader (DL_uint shader)
-{
-	return &__DL_shaders_values[shader];
-}
-
-// ================================ //
-
-DLShaderAttrs* dlShaderGetAttrs (DL_uint shader)
-{
-	return &__DL_shaders_values[shader].attrs;
-}
-
-// ================================ //
-
-void dlShaderInit (DL_uint shader, int count)
-{
-	DLShader* _shader = &__DL_shaders_values[shader];
-	_shader->attrs.attrs_count = count;
-	_shader->attrs.attrs_keys = calloc(count, sizeof(char*));
-	_shader->attrs.attrs_values = calloc(count, sizeof(void*));
-}
-
-void dlShaderBindAttrib (DL_uint shader, char* id, int index)
-{
-	DLShader* _shader = &__DL_shaders_values[shader];
-	_shader->attrs.attrs_keys[index] = id;
-}
-
-// ================================ //
-
-void dlShaderBindCode (DL_uint shader, void (*code) (DLShaderAttrs*))
-{
-	DLShader* _shader = &__DL_shaders_values[shader];
-	_shader->code = code;
-}
-
-// ================================ //
-
-void dlSetShaderAttrib (DL_uint shader, int index, void* value)
-{
-	DLShader* _shader = &__DL_shaders_values[shader];
-	_shader->attrs.attrs_values[index] = value;
-}
-
-// ================================ //
-
-void dlSetShaderAttribID (DL_uint shader, char* id, void* value)
-{
-	DLShader* _shader = &__DL_shaders_values[shader];
-
-	int index = 0;
-
-	while (index < _shader->attrs.attrs_count)
+	// Freeing attr parameters
+	for (int i = 0; i < _shader->attrs_capacity; i++)
 	{
-		if (_shader->attrs.attrs_keys[index] == id)
-		{
-			break;
-		}
-
-		index++;
+		free(_shader->attrs_keys[i]);
 	}
 
-	_shader->attrs.attrs_values[index] = value;
+	// _shader->attrs_count = 0;
+	_shader->attrs_capacity = 0;
+
+	free(_shader->attrs_keys);
+	free(_shader->attrs_values);
+	_shader->attrs_keys = NULL;
+	_shader->attrs_values = NULL;
+
+	// Freeing buf_attr parameters
+	_shader->buf_attrs_capacity = 0;
+	_shader->buf_attrs_count = 0;
+
+	free(_shader->buf_attrs_buffers);
+	free(_shader->buf_attrs_voffset);
+	free(_shader->buf_attrs_vsize);
+	free(_shader->buf_attrs_attribs);
+
+	_shader->buf_attrs_buffers = NULL;
+	_shader->buf_attrs_voffset = NULL;
+	_shader->buf_attrs_vsize = NULL;
+	_shader->buf_attrs_attribs = NULL;
+
+	_DL_shaders_count--;
 }
 
-void* dlGetShaderAttrib (DL_uint shader, int index)
+void dlShaderInit (DLUInt shader, int attrs_capacity, int buf_attrs_capacity)
 {
-	DLShader* _shader = &__DL_shaders_values[shader];
-	return &_shader->attrs.attrs_values[index];
+	struct DLShader* _shader = &_DL_shaders_values[shader];
+
+	// _shader->attrs_count = 0;
+	_shader->attrs_capacity = attrs_capacity;
+	_shader->attrs_keys = calloc(attrs_capacity, sizeof(char*));
+	_shader->attrs_values = calloc(attrs_capacity, sizeof(void*));
+
+	_shader->buf_attrs_capacity = buf_attrs_capacity;
+	_shader->buf_attrs_count = 0;
+	_shader->buf_attrs_buffers = calloc(_shader->buf_attrs_capacity, sizeof(void*));
+	_shader->buf_attrs_voffset = calloc(_shader->buf_attrs_capacity, sizeof(int));
+	_shader->buf_attrs_vsize = calloc(_shader->buf_attrs_capacity, sizeof(int));
+	_shader->buf_attrs_attribs = calloc(_shader->buf_attrs_capacity, sizeof(int));
 }
 
-void* dlGetShaderAttribID (DL_uint shader, char* id)
+void dlShaderBindAttribID (DLUInt shader, char* id, int index)
 {
-	DLShader* _shader = &__DL_shaders_values[shader];
+	struct DLShader* _shader = &_DL_shaders_values[shader];
 
-	int index = 0;
+	_shader->attrs_keys[index] = calloc(strlen(id), sizeof(char));
+	strcpy(_shader->attrs_keys[index], id);
+}
 
-	while (index < _shader->attrs.attrs_count)
+int dlShaderGetAttribIndex (DLUInt shader, char* id)
+{
+	struct DLShader* _shader = &_DL_shaders_values[shader];
+
+	int index = -1;
+
+	while (++index < _shader->attrs_capacity)
 	{
-		if (_shader->attrs.attrs_keys[index] == id)
-		{
-			break;
-		}
+		char* attr_id = _shader->attrs_keys[index];
 
-		index++;
+		if (strcmp(attr_id, id) == 0)
+		{
+			return index;
+		}
 	}
 
-	return &_shader->attrs.attrs_values[index];
+	return -1;
+}
+
+void dlShaderBindUniformAttrib (DLUInt shader, int index, void* value)
+{
+	struct DLShader* _shader = &_DL_shaders_values[shader];
+	_shader->attrs_values[index] = value;
+}
+
+void dlShaderBindBufferAttrib (DLUInt shader, void* buffer, DLUInt voffset, DLUInt vsize, DLUInt attrib)
+{
+	struct DLShader* _shader = &_DL_shaders_values[shader];
+
+	int index = _shader->buf_attrs_count++;
+
+	if (index >= _shader->buf_attrs_capacity)
+	{
+		_shader->buf_attrs_capacity = _shader->buf_attrs_capacity * 2;
+
+		_shader->buf_attrs_buffers = realloc(_shader->buf_attrs_buffers, _shader->buf_attrs_capacity * sizeof(void*));
+		_shader->buf_attrs_voffset = realloc(_shader->buf_attrs_voffset, _shader->buf_attrs_capacity * sizeof(int));
+		_shader->buf_attrs_vsize = realloc(_shader->buf_attrs_vsize, _shader->buf_attrs_capacity * sizeof(int));
+		_shader->buf_attrs_attribs = realloc(_shader->buf_attrs_attribs, _shader->buf_attrs_capacity * sizeof(int));
+	}
+
+	_shader->buf_attrs_buffers[index] = buffer;
+	_shader->buf_attrs_voffset[index] = voffset;
+	_shader->buf_attrs_vsize[index] = vsize;
+	_shader->buf_attrs_attribs[index] = attrib;
 }
 
 // ======================== //
 // ======== DLPath ======== //
 // ======================== //
 
-DL_uint dlCreatePath ()
+DLUInt dlCreatePath ()
 {
-	DLPath path;
+	struct DLPath path;
 
-	path.code = NULL;
-	path.attrs.buffer = NULL;
+	path.attrs_capacity = 0;
+	path.attrs_keys = NULL;
+	path.attrs_values = NULL;
 
-	int id = path_getFirstAvailable();
-	__DL_paths_values[id] = path;
-	__DL_paths_count++;
-	
-	return id;
+	int index = path_getFirstAvailable();
+	_DL_paths_values[index] = path;
+	_DL_paths_count++;
+
+	return index;
 }
 
-void dlFreePath (DL_uint path)
+void dlFreePath (DLUInt path)
 {
-	DLPath* _path = &__DL_paths_values[path];
-	_path->attrs.buffer = NULL;
-	_path->attrs.attrs_count = 0;
-	free(_path->attrs.attrs_keys);
-	free(_path->attrs.attrs_values);
-	_path->attrs.attrs_keys = NULL;
-	_path->attrs.attrs_values = NULL;
-	__DL_paths_count--;
-}
+	struct DLPath* _path = &_DL_paths_values[path];
 
-// ================================ //
-
-DLPath* dlGetPath (DL_uint path)
-{
-	return &__DL_paths_values[path];
-}
-
-// ================================ //
-
-DLPathAttrs* dlPathGetAttrs (DL_uint path)
-{
-	return &__DL_paths_values[path].attrs;
-}
-
-// ================================ //
-
-void dlPathInit (DL_uint path, int count)
-{
-	DLPath* _path = &__DL_paths_values[path];
-	_path->attrs.attrs_count = count;
-	_path->attrs.attrs_keys = calloc(count, sizeof(char*));
-	_path->attrs.attrs_values = calloc(count, sizeof(void*));
-}
-
-void dlPathBindAttrib (DL_uint path, char* id, int index)
-{
-	DLPath* _path = &__DL_paths_values[path];
-	_path->attrs.attrs_keys[index] = id;
-}
-
-// ================================ //
-
-void dlPathBindCode (DL_uint path, void (*code) (DLPathAttrs*))
-{
-	DLPath* _path = &__DL_paths_values[path];
-	_path->code = code;
-}
-
-// ================================ //
-
-void dlSetPathAttrib (DL_uint path, int index, void* value)
-{
-	DLPath* _path = &__DL_paths_values[path];
-	_path->attrs.attrs_values[index] = value;
-}
-
-void dlSetPathAttribID (DL_uint path, char* id, void* value)
-{
-	DLPath* _path = &__DL_paths_values[path];
-
-	int index = 0;
-
-	while (index < _path->attrs.attrs_count)
+	for (int i = 0; i < _path->attrs_capacity; i++)
 	{
-		if (_path->attrs.attrs_keys[index] == id)
-		{
-			break;
-		}
-
-		index++;
+		free(_path->attrs_keys[i]);
 	}
 
-	_path->attrs.attrs_values[index] = value;
-}
+	_path->attrs_capacity = 0;
 
-void* dlGetPathAttrib (DL_uint path, int index)
-{
-	DLPath* _path = &__DL_paths_values[path];
-	return &_path->attrs.attrs_values[index];
-}
+	free(_path->attrs_keys);
+	free(_path->attrs_values);
+	_path->attrs_keys = NULL;
+	_path->attrs_values = NULL;
 
-void* dlGetPathAttribID (DL_uint path, char* id)
-{
-	DLPath* _path = &__DL_paths_values[path];
-
-	int index = 0;
-
-	while (index < _path->attrs.attrs_count)
-	{
-		if (_path->attrs.attrs_keys[index] == id)
-		{
-			break;
-		}
-
-		index++;
-	}
-
-	return &_path->attrs.attrs_values[index];
+	_DL_paths_count--;
 }

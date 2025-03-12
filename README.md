@@ -8,11 +8,13 @@ Java Prototype: https://github.com/notcl4y14/JavaOpenDL
 
 ### Buffer
 
-In OpenDL, a Buffer is an array with pixel values (Basically, a texture, sprite, image etc.). It can be modified and drawn to other Buffers.
+In OpenDL, a Buffer is an array. That's it, just a basic array. There are two types of it: Texture Buffer and Attribute Buffer. The Texture Buffer stores RGBA values, meanwhile Attribute Buffer stores attributes for Shaders.
+
+Uniform Attribute Buffer can also be created and used for Shaders/Paths.
 
 ### Shader
 
-Shader is an object that modifies pixels of the Buffer with given attributes. Useful for basic Texture coloring, effects, gradients, etc.
+Shader is an object that modifies values of the Buffer with given attributes. Useful for basic Texture coloring, effects, gradients, etc.
 
 ### Path
 
@@ -20,15 +22,12 @@ Similar to Shaders. Path is an object that directly modifies the Buffer object, 
 
 ### Planned Features
 
-- More functions for managing Buffers
-	+ Blending
-- Function Overloading (probably)
-- Make functions like dlFillBuffer and dl...SetAttrib accept any type instead of just using pointers for that
-	+ Or find a way to make it shorter
+- Blending for Texture Buffers
+- Function Overloading
 
 ## "OpenDL"?
 
-**OpenDL** stands for **Open Drawing Library**. Because, it's basically managing and drawing Textures.
+**OpenDL** stands for **Open Drawing Library**. ~~Because, it's basically managing and drawing Textures.~~ The name MIGHT be changed in the future.
 
 # Example Code "Sketches"
 
@@ -39,13 +38,12 @@ int main ()
 {
 	// Initializing DL
 	dlInit();
-	dlBufferDefaultPixelSize(4);
 
 	// Loading Shaders and Paths
 	char* shader_gradient_source = /* code */;
 	char* path_triangle_source = /* code */;
 
-	DL_uint shader_gradient = dlCreateShader();
+	DLUInt shader_gradient = dlCreateShader();
 	dlShaderBindSource(shader_gradient, *shader_gradient_source);
 	dlShaderCompile(shader_gradient);
 
@@ -55,7 +53,7 @@ int main ()
 		return 1;
 	}
 	
-	DL_uint path_triangle = dlCreatePath();
+	DLUInt path_triangle = dlCreatePath();
 	dlPathBindSource(path_triangle, *path_triangle_source);
 	dlPathCompile(path_triangle);
 
@@ -66,19 +64,23 @@ int main ()
 	}
 
 	// Initializing Canvas
-	DL_uint canvas = dlCreateBuffer(800, 600);
+	int canvas_width = 800;
+	int canvas_height = 600;
+	int canvas_size = canvas_width * canvas_height * 4;
+	char canvas[canvas_size];
 
-	// -- Perhaps change the way functions accept custom values
-	//    without using pointers
-	char color[4] = {255, 255, 255, 255};
-	dlFillBuffer(canvas, &color):
+	// Filling Canvas with Color (255, 255, 255, 255)
+	for (int i = 0; i < canvas_size; i++)
+	{
+		canvas[i] = 255;
+	}
 
 	// Setting Path Attributes
-	int verts[6] = {400,0, 0,600, 800,600};
+	int vertices[6] = {400,0, 0,600, 800,600};
 	char triangle_color[4] = {255, 255, 255, 255};
 
-	dlPathSetAttrib(path_triangle, "verts", verts);
-	dlPathSetAttrib(path_triangle, "color", triangle_color);
+	dlPathBindUniformAttrib(path_triangle, "vertices", vertices);
+	dlPathBindUniformAttrib(path_triangle, "color", triangle_color);
 
 	// Setting Shader Attributes
 	char color1[4] = {255, 0, 0, 255};
