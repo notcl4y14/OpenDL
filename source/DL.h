@@ -15,30 +15,38 @@
 struct DLShader;
 struct DLPath;
 
+struct DLAttrs;
+struct DLBufAttrs;
+
 typedef struct DLShader DLShader;
 typedef struct DLPath DLPath;
 
+struct DLAttrs
+{
+	int capacity;
+	char** keys;
+	void** values;
+};
+
+struct DLBufAttrs
+{
+	int capacity;
+	int count;
+	void**    buffers;
+	DLUInt*   voffset;
+	DLUInt*   vsize;
+	DLUInt*   attribs;
+};
+
 struct DLShader
 {
-	// int    attrs_count;
-	int    attrs_capacity;
-	char** attrs_keys;
-	void** attrs_values;
-
-	int    buf_attrs_capacity;
-	int    buf_attrs_count;
-	void** buf_attrs_buffers;
-	int*   buf_attrs_voffset;
-	int*   buf_attrs_vsize;
-	int*   buf_attrs_attribs;
+	struct DLAttrs attrs;
+	struct DLBufAttrs buf_attrs;
 };
 
 struct DLPath
 {
-	// int    attrs_count;
-	int    attrs_capacity;
-	char** attrs_keys;
-	void** attrs_values;
+	struct DLAttrs attrs;
 };
 
 extern struct DLShader* _DL_shaders_values;

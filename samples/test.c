@@ -53,10 +53,10 @@ void print_shader (DLUInt shader)
 	DLShader* _shader = &_DL_shaders_values[shader];
 
 	printf("DLShader (0x%x)\n", (DLUChar*)_shader);
-	printf("- Attribs Capacity: %d\n", _shader->attrs_capacity);
+	printf("- Attribs Capacity: %d\n", _shader->attrs.capacity);
 	printf("- Attribs:");
 
-	if (_shader->attrs_capacity == 0)
+	if (_shader->attrs.capacity == 0)
 	{
 		printf(" None\n");
 	}
@@ -65,39 +65,39 @@ void print_shader (DLUInt shader)
 		printf("\n");
 	}
 
-	for (int i = 0; i < _shader->attrs_capacity; i++)
+	for (int i = 0; i < _shader->attrs.capacity; i++)
 	{
 		// printf("	- %d. %s: %d (0x%x)\n", i, _shader->attrs_keys[i], *(int*)_shader->attrs_values[i], &_shader->attrs_values[i]);
 		printf("	- %d. ", i);
 
-		if (_shader->attrs_keys[i] == NULL)
+		if (_shader->attrs.keys[i] == NULL)
 		{
 			printf("*unbound*");
 		}
 		else
 		{
-			printf("%s", _shader->attrs_keys[i]);
+			printf("%s", _shader->attrs.keys[i]);
 		}
 
 		printf(": ");
 
-		if (_shader->attrs_values[i] == NULL)
+		if (_shader->attrs.values[i] == NULL)
 		{
 			printf("null");
 		}
 		else
 		{
-			printf("%d", *(long*)_shader->attrs_values[i]);
+			printf("%d", *(long*)_shader->attrs.values[i]);
 		}
 
 		printf("\n");
 	}
 
-	printf("- Buffer Attribs Capacity: %d\n", _shader->buf_attrs_capacity);
-	printf("- Buffer Attribs Count: %d\n", _shader->buf_attrs_count);
+	printf("- Buffer Attribs Capacity: %d\n", _shader->buf_attrs.capacity);
+	printf("- Buffer Attribs Count: %d\n", _shader->buf_attrs.count);
 	printf("- Buffer Attribs:");
 
-	if (_shader->buf_attrs_count == 0)
+	if (_shader->buf_attrs.count == 0)
 	{
 		printf(" None\n");
 	}
@@ -107,15 +107,15 @@ void print_shader (DLUInt shader)
 		printf("	     Buffer\tvOffset\tvSize\tAttrib\n");
 	}
 
-	for (int i = 0; i < _shader->buf_attrs_count; i++)
+	for (int i = 0; i < _shader->buf_attrs.count; i++)
 	{
 		printf(
 			"	- %d. 0x%x\t%d\t%d\t%d",
 			i,
-			&_shader->buf_attrs_buffers[i],
-			_shader->buf_attrs_voffset[i],
-			_shader->buf_attrs_vsize[i],
-			_shader->buf_attrs_attribs[i]
+			&_shader->buf_attrs.buffers[i],
+			_shader->buf_attrs.voffset[i],
+			_shader->buf_attrs.vsize[i],
+			_shader->buf_attrs.attribs[i]
 		);
 
 		printf("\n");
