@@ -30,7 +30,7 @@ int main ()
 	dlShaderBindUniformAttrib(shader, dlShaderGetAttribIndex(shader, "corners"), &shader_attribs[2]);
 	dlShaderBindUniformAttrib(shader, dlShaderGetAttribIndex(shader, "sides"), &shader_attribs[3]);
 
-	dlShaderBindBufferAttrib(shader, &shader_attribs, 0, sizeof(int), 0);
+	dlShaderBindBufferAttrib(shader, &shader_attribs, 0, 1, sizeof(int), 0);
 
 	print_shader(shader);
 	printf("\n");
