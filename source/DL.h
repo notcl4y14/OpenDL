@@ -59,15 +59,11 @@ extern DLUInt _DL_paths_count;
 extern DLUInt _DL_shaders_capacity;
 extern DLUInt _DL_paths_capacity;
 
-// extern DLUChar _DL_shaders_auto_init;
-// extern DLUChar _DL_paths_auto_init;
-
 // DL
 void dlInit ();
 void dlTerminate ();
 
 void dlInitialArrayCapacity (DLUInt object, DLUInt capacity);
-// void dlInitObjectsAutomatically (DLUInt object, DLUChar boolean);
 
 // DLShader
 DLUInt dlCreateShader ();

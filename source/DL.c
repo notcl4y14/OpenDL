@@ -12,9 +12,6 @@ DLUInt _DL_paths_count;
 DLUInt _DL_shaders_capacity = 16;
 DLUInt _DL_paths_capacity = 16;
 
-// DLUChar _DL_shaders_auto_init = DL_FALSE;
-// DLUChar _DL_paths_auto_init = DL_FALSE;
-
 // ====================== //
 // ======== Util ======== //
 // ====================== //
@@ -80,7 +77,6 @@ void shader_applyBufferAttrib (DLUInt shader, DLUInt val_index)
 	// buf_index is a loop index for Buffer Attributes
 	// val_index is a loop index for Buffer Arrays
 	int buf_index = -1;
-	// int val_index = -1;
 
 	while (++buf_index < _shader->buf_attrs.count)
 	{
@@ -98,17 +94,6 @@ void shader_applyBufferAttrib (DLUInt shader, DLUInt val_index)
 
 		void* value = _buffer + (val_index + voffset) * vsize;
 		dlShaderBindUniformAttrib(shader, attrib, value);
-
-		// while (++val_index < buffer_size)
-		// {
-		// 	if (val_index + voffset < buffer_size)
-		// 	{
-		// 		break;
-		// 	}
-
-		// 	void* value = _buffer + (val_index + voffset) * vsize;
-		// 	dlShaderBindUniformAttrib(shader, attrib, value);
-		// }
 	}
 }
 
@@ -172,25 +157,6 @@ void dlInitialArrayCapacity (DLUInt object, DLUInt capacity)
 			break;
 	}
 }
-
-// void dlInitObjectsAutomatically (DLUInt object, DLUChar boolean)
-// {
-// 	switch (object)
-// 	{
-// 		case DL_OBJECT_SHADER:
-// 			_DL_shaders_auto_init = boolean;
-// 			break;
-
-// 		case DL_OBJECT_PATH:
-// 			_DL_paths_auto_init = boolean;
-// 			break;
-
-// 		case DL_OBJECT_ALL:
-// 			_DL_shaders_auto_init = boolean;
-// 			_DL_paths_auto_init = boolean;
-// 			break;
-// 	}
-// }
 
 // ========================== //
 // ======== DLShader ======== //
