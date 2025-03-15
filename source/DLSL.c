@@ -12,6 +12,12 @@ struct DLSLVM dlslCreateVM ()
 	vm.stack = NULL;
 	vm.stack_size = 0;
 
+	vm.global = NULL;
+	vm.global_size = 0;
+
+	vm.attrs = NULL;
+	vm.attrs_size = 0;
+
 	return vm;
 }
 
@@ -20,10 +26,10 @@ void dlslFreeVM (struct DLSLVM* vm)
 	free(vm->code);
 	free(vm->stack);
 	free(vm->global);
-	free(vm->attrib);
+	free(vm->attrs);
 }
 
-void dlslVMInit (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrib_size)
+void dlslVMLoad (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrs_size)
 {
 	vm->stack_size = stack_size;
 	vm->stack = calloc(stack_size, sizeof(int));
@@ -31,11 +37,11 @@ void dlslVMInit (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUIn
 	vm->global_size = global_size;
 	vm->global = calloc(global_size, sizeof(int));
 
-	vm->attrib_size = attrib_size;
-	vm->attrib = calloc(attrib_size, sizeof(int));
+	vm->attrs_size = attrs_size;
+	vm->attrs = calloc(attrs_size, sizeof(int));
 }
 
-void dlslVMBindCode (struct DLSLVM* vm, int* code, DLUInt code_size)
+void dlslVMLoadCode (struct DLSLVM* vm, int* code, DLUInt code_size)
 {
 	vm->code_size = code_size;
 	vm->code = calloc(code_size, sizeof(int));
@@ -49,13 +55,13 @@ void dlslVMBindCode (struct DLSLVM* vm, int* code, DLUInt code_size)
 	}
 }
 
-void dlslVMLoadAttribs (struct DLSLVM* vm, struct DLAttrs* attrs)
+void dlslVMLoadAttrs (struct DLSLVM* vm, struct DLAttrs* attrs)
 {
 	int index = -1;
 
 	while (++index < attrs->capacity)
 	{
-		vm->attrib[index] = *(int*)attrs->values[index];
+		vm->attrs[index] = *(int*)attrs->values[index];
 	}
 }
 
@@ -184,7 +190,16 @@ void dlslVMRun (struct DLSLVM* vm)
 
 			case DLSL_OPCODE_ALD:
 				addr = vm->code[++ip];
-				vm->stack[++sp] = vm->attrib[addr];
+				vm->stack[++sp] = vm->attrs[addr];
+				break;
+
+			case DLSL_OPCODE_AST:
+				addr = vm->code[++ip];
+				vm->attrs[addr] = vm->stack[sp--];
+				break;
+
+			case DLSL_OPCODE_BUFFERVALUE:
+				vm->dl_BufferValue = vm->stack[sp--];
 				break;
 		}
 	}

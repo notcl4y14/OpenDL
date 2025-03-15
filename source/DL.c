@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include <DL.h>
+#include <DLSL.h>
 
 struct DLShader* _DL_shaders_values;
 struct DLPath*   _DL_paths_values;
@@ -11,6 +12,8 @@ DLUInt _DL_paths_count;
 
 DLUInt _DL_shaders_capacity = 16;
 DLUInt _DL_paths_capacity = 16;
+
+struct DLSLVM _DL_dlsl_vm;
 
 // ====================== //
 // ======== Util ======== //
@@ -108,6 +111,9 @@ void dlInit ()
 
 	_DL_shaders_count = 0;
 	_DL_paths_count = 0;
+
+	_DL_dlsl_vm = dlslCreateVM();
+	dlslVMLoad(&_DL_dlsl_vm, 64, 64, 64);
 }
 
 void dlTerminate ()
@@ -137,6 +143,7 @@ void dlTerminate ()
 
 	free(_DL_shaders_values);
 	free(_DL_paths_values);
+	dlslFreeVM(&_DL_dlsl_vm);
 }
 
 void dlInitialArrayCapacity (DLUInt object, DLUInt capacity)
@@ -188,6 +195,13 @@ DLUInt dlCreateShader ()
 void dlFreeShader (DLUInt shader)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
+
+	// Freeing code parameters
+	_shader->code.code_size = 0;
+
+	free(_shader->code.code);
+
+	_shader->code.code = NULL;
 
 	// Freeing attr parameters
 	for (int i = 0; i < _shader->attrs.capacity; i++)
@@ -246,6 +260,21 @@ void dlShaderBindAttribID (DLUInt shader, char* id, int index)
 	strcpy(_shader->attrs.keys[index], id);
 }
 
+void dlShaderLoadCode (DLUInt shader, int* code, int code_size)
+{
+	struct DLShader* _shader = &_DL_shaders_values[shader];
+
+	_shader->code.code_size = code_size;
+	_shader->code.code = calloc(_shader->code.code_size, sizeof(int));
+
+	int index = -1;
+
+	while (++index < _shader->code.code_size)
+	{
+		_shader->code.code[index] = code[index];
+	}
+}
+
 DLUInt dlShaderGetAttribIndex (DLUInt shader, char* id)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
@@ -299,14 +328,15 @@ void dlApplyShader (DLUInt shader, void* dest_buffer, DLUInt buffer_size, DLUInt
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
 
-	DLUChar cbuffer[buffer_size * byte_size];
-	memcpy(&cbuffer, dest_buffer, buffer_size * byte_size);
+	dlslVMLoadCode(&_DL_dlsl_vm, _shader->code.code, _shader->code.code_size);
 
 	int index = -1;
 
 	while (++index < buffer_size)
 	{
 		shader_applyBufferAttrib (shader, index);
+		dlslVMRun(&_DL_dlsl_vm);
+		memcpy(dest_buffer + (index * byte_size), &_DL_dlsl_vm.dl_BufferValue, byte_size);
 	}
 }
 

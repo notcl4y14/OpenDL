@@ -30,6 +30,8 @@
 #define DLSL_OPCODE_GLD  19
 
 #define DLSL_OPCODE_ALD  20
+#define DLSL_OPCODE_AST  21
+#define DLSL_OPCODE_BUFFERVALUE 22
 
 struct DLSLVM
 {
@@ -42,8 +44,8 @@ struct DLSLVM
 	int*    stack;
 	DLUInt  stack_size;
 
-	int*    attrib;
-	DLUInt  attrib_size;
+	int*    attrs;
+	DLUInt  attrs_size;
 
 	int dl_BufferValue;
 };
@@ -51,11 +53,10 @@ struct DLSLVM
 struct DLSLVM dlslCreateVM ();
 void dlslFreeVM (struct DLSLVM* vm);
 
-void dlslVMInit (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrib_size);
-void dlslVMBindCode (struct DLSLVM* vm, int* code, DLUInt code_size);
+void dlslVMLoad (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrs_size);
+void dlslVMLoadCode (struct DLSLVM* vm, int* code, DLUInt code_size);
+void dlslVMLoadAttrs (struct DLSLVM* vm, struct DLAttrs* attrs);
 
-void dlslVMLoadAttribs (struct DLSLVM* vm, struct DLAttrs* attrs);
-
-void dlslVMRun ();
+void dlslVMRun (struct DLSLVM* vm);
 
 #endif

@@ -1,6 +1,12 @@
 #ifndef DL_H
 #define DL_H
 
+// Including objects from DLSL.h
+// to prevent header recursion
+// =============================
+struct DLSLVM;
+// =============================
+
 #define DLUChar unsigned char
 #define DLUInt unsigned int
 
@@ -17,6 +23,8 @@ struct DLPath;
 
 struct DLAttrs;
 struct DLBufAttrs;
+
+struct DLCode;
 
 typedef struct DLShader DLShader;
 typedef struct DLPath DLPath;
@@ -39,8 +47,15 @@ struct DLBufAttrs
 	DLUInt*   attribs;
 };
 
+struct DLCode
+{
+	int*   code;
+	DLUInt code_size;
+};
+
 struct DLShader
 {
+	struct DLCode code;
 	struct DLAttrs attrs;
 	struct DLBufAttrs buf_attrs;
 };
@@ -59,6 +74,8 @@ extern DLUInt _DL_paths_count;
 extern DLUInt _DL_shaders_capacity;
 extern DLUInt _DL_paths_capacity;
 
+extern struct DLSLVM _DL_dlsl_vm;
+
 // DL
 void dlInit ();
 void dlTerminate ();
@@ -71,6 +88,8 @@ void dlFreeShader (DLUInt shader);
 
 void dlShaderInit (DLUInt shader, int attrs_capacity, int buf_attrs_capacity);
 void dlShaderBindAttribID (DLUInt shader, char* id, int index);
+
+void dlShaderLoadCode (DLUInt shader, int* code, int code_size);
 
 DLUInt dlShaderGetAttribIndex (DLUInt shader, char* id);
 void dlShaderBindUniformAttrib (DLUInt shader, int index, void* attrib);

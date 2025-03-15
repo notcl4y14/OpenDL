@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <DL.h>
+#include <DLSL.h>
 
 int main ()
 {
@@ -20,6 +21,15 @@ int main ()
 	{
 		0, 0, 0, 0,
 	};
+
+	int shader_code[255] =
+	{
+		DLSL_OPCODE_PUSH, 512,
+		DLSL_OPCODE_BUFFERVALUE,
+		DLSL_OPCODE_QUIT,
+	};
+
+	dlShaderLoadCode(shader, (int*)&shader_code, sizeof(shader_code) / sizeof(int));
 
 	dlShaderBindAttribID(shader, "attrib1", 0);
 	dlShaderBindAttribID(shader, "attrib2", 1);
@@ -63,10 +73,20 @@ int main ()
 	);
 
 	dlApplyShader(shader, &texture_buffer, sizeof(texture_buffer), sizeof(int));
+
 	printf("attrib1: %d\n", *(int*)_DL_shaders_values[shader].attrs.values[0]);
 	printf("attrib2: %d\n", *(int*)_DL_shaders_values[shader].attrs.values[1]);
 	printf("attrib3: %d\n", *(int*)_DL_shaders_values[shader].attrs.values[2]);
 	printf("attrib4: %d\n", *(int*)_DL_shaders_values[shader].attrs.values[3]);
+
+	printf("\n");
+
+	printf("Texture Buffer:\n");
+
+	for (int i = 0; i < 4; i++)
+	{
+		printf("%d. %d\n", i, texture_buffer[i]);
+	}
 
 	return 0;
 }

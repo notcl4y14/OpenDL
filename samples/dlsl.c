@@ -32,19 +32,11 @@ int main ()
 
 	// Creating and initializing DLSL VM
 	struct DLSLVM vm = dlslCreateVM();
-	dlslVMInit(&vm, vm_stack_size, vm_global_size, shader_attr_size);
+	dlslVMLoad(&vm, vm_stack_size, vm_global_size, shader_attr_size);
 
 	// Creating VM's code
 	int code[255] =
 	{
-		// DLSL_OPCODE_PUSH, 10,
-		// DLSL_OPCODE_GST, 0,
-
-		// DLSL_OPCODE_PUSH, 64,
-		// DLSL_OPCODE_GLD, 0,
-
-		// DLSL_OPCODE_IADD,
-
 		DLSL_OPCODE_ALD, 0,
 		DLSL_OPCODE_GST, 0,
 
@@ -60,11 +52,11 @@ int main ()
 		DLSL_OPCODE_QUIT,
 	};
 
-	// Binding VM code
-	dlslVMBindCode(&vm, code, sizeof(code) / sizeof(int));
+	// Loading VM code
+	dlslVMLoadCode(&vm, code, sizeof(code) / sizeof(int));
 
 	// Loading Shader's attributes to VM
-	dlslVMLoadAttribs(&vm, &_DL_shaders_values[shader].attrs);
+	dlslVMLoadAttrs(&vm, &_DL_shaders_values[shader].attrs);
 
 	// Running VM
 	dlslVMRun(&vm);
