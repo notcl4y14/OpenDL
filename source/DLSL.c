@@ -19,18 +19,26 @@ void dlslFreeVM (struct DLSLVM* vm)
 {
 	free(vm->code);
 	free(vm->stack);
+	free(vm->global);
+	free(vm->attrib);
 }
 
-void dlslVMInit (struct DLSLVM* vm, DLUInt stack_size)
+void dlslVMInit (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrib_size)
 {
 	vm->stack_size = stack_size;
 	vm->stack = calloc(stack_size, sizeof(int));
+
+	vm->global_size = global_size;
+	vm->global = calloc(global_size, sizeof(int));
+
+	vm->attrib_size = attrib_size;
+	vm->attrib = calloc(attrib_size, sizeof(int));
 }
 
-void dlslVMBindCode (struct DLSLVM* vm, DLUChar* code, DLUInt code_size)
+void dlslVMBindCode (struct DLSLVM* vm, int* code, DLUInt code_size)
 {
 	vm->code_size = code_size;
-	vm->code = calloc(code_size, sizeof(DLUInt));
+	vm->code = calloc(code_size, sizeof(int));
 
 	// Copy the source code to VM code
 	int index = -1;
@@ -38,6 +46,16 @@ void dlslVMBindCode (struct DLSLVM* vm, DLUChar* code, DLUInt code_size)
 	while (++index < code_size)
 	{
 		vm->code[index] = code[index];
+	}
+}
+
+void dlslVMLoadAttribs (struct DLSLVM* vm, struct DLAttrs* attrs)
+{
+	int index = -1;
+
+	while (++index < attrs->capacity)
+	{
+		vm->attrib[index] = *(int*)attrs->values[index];
 	}
 }
 
@@ -58,7 +76,7 @@ void dlslVMRun (struct DLSLVM* vm)
 	callsp = -1;
 
 	DLUChar running = 1;
-	DLUChar opcode;
+	int opcode;
 
 	while (running)
 	{
@@ -78,9 +96,7 @@ void dlslVMRun (struct DLSLVM* vm)
 			case DLSL_OPCODE_IADD:
 				b = vm->stack[sp--];
 				a = vm->stack[sp--];
-				// printf("[%d]\tIADD: Adding %d, %d\n", ip, a, b);
 				vm->stack[++sp] = a + b;
-				// printf("[%d]\tIADD: Pushing %d\t(%d)\n", ip, a + b, sp);
 				break;
 
 			case DLSL_OPCODE_ISUB:
@@ -103,13 +119,11 @@ void dlslVMRun (struct DLSLVM* vm)
 
 			case DLSL_OPCODE_PUSH:
 				vm->stack[++sp] = vm->code[++ip];
-				// printf("[%d]\tPUSH: Pushing %d\t(%d)\n", ip, vm->code[ip], sp);
 				break;
 
 			case DLSL_OPCODE_SCL:
 				a = vm->stack[sp];
 				vm->stack[++sp] = a;
-				// printf("[%d]\tSCL: Pushing %d\t(%d)\n", ip, a, sp);
 				break;
 
 			case DLSL_OPCODE_SPN:
@@ -123,9 +137,7 @@ void dlslVMRun (struct DLSLVM* vm)
 			case DLSL_OPCODE_ILT:
 				b = vm->stack[sp--];
 				a = vm->stack[sp--];
-				// printf("[%d]\tILT: Comparing %d, %d\n", ip, a, b);
 				vm->stack[++sp] = (a < b);
-				// printf("[%d]\tILT: Pushing %d\t(%d)\n", ip, a < b, sp);
 				break;
 
 			case DLSL_OPCODE_IGT:
@@ -143,11 +155,8 @@ void dlslVMRun (struct DLSLVM* vm)
 			case DLSL_OPCODE_JMPI:
 				addr = vm->code[++ip];
 
-				// printf("[%d]\tJMPI: Checking...\n", ip);
-
 				if (vm->stack[sp--] == 1)
 				{
-					// printf("[%d]\tJMPI: True, moving to %d\t(%d)\n", ip, addr, sp);
 					ip = addr - 1;
 				}
 
@@ -156,14 +165,26 @@ void dlslVMRun (struct DLSLVM* vm)
 			case DLSL_OPCODE_JMPN:
 				addr = vm->code[ip++];
 
-				// printf("[%d]\tJMPN: Checking...\n", ip);
-
 				if (vm->stack[sp--] == 0)
 				{
-					// printf("[%d]\tJMPN: True, moving to %d\t(%d)\n", ip, addr, sp);
 					ip = addr - 1;
 				}
 
+				break;
+
+			case DLSL_OPCODE_GST:
+				addr = vm->code[++ip];
+				vm->global[addr] = vm->stack[sp--];
+				break;
+
+			case DLSL_OPCODE_GLD:
+				addr = vm->code[++ip];
+				vm->stack[++sp] = vm->global[addr];
+				break;
+
+			case DLSL_OPCODE_ALD:
+				addr = vm->code[++ip];
+				vm->stack[++sp] = vm->attrib[addr];
 				break;
 		}
 	}
