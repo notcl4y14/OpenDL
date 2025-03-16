@@ -31,31 +31,51 @@
 
 #define DLSL_OPCODE_ALD  20
 #define DLSL_OPCODE_AST  21
-#define DLSL_OPCODE_BUFFERVALUE 22
+#define DLSL_OPCODE_BUFFERVALUE_SET 22
+#define DLSL_OPCODE_BUFFERVALUE_GET 23
 
 struct DLSLVM
 {
 	int*    code;
 	DLUInt  code_size;
 
-	int*    global;
+	void*   global;
+	DLUInt  global_unit_size;
 	DLUInt  global_size;
 
-	int*    stack;
+	void*   stack;
+	DLUInt  stack_unit_size;
 	DLUInt  stack_size;
+	DLUInt  stack_pointer;
 
-	int*    attrs;
+	void*   attrs;
+	DLUInt  attrs_unit_size;
 	DLUInt  attrs_size;
 
-	int dl_BufferValue;
+	void* dl_BufferValue;
+	DLUInt dl_BufferValue_unit_size;
+	DLUInt dl_BufferValue_size;
 };
 
 struct DLSLVM dlslCreateVM ();
 void dlslFreeVM (struct DLSLVM* vm);
 
-void dlslVMLoad (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrs_size);
+void dlslVMLoad (struct DLSLVM* vm);
 void dlslVMLoadCode (struct DLSLVM* vm, int* code, DLUInt code_size);
 void dlslVMLoadAttrs (struct DLSLVM* vm, struct DLAttrs* attrs);
+
+void dlslVMStackGet (struct DLSLVM* vm, void* dest, int delta);
+void dlslVMStackPush (struct DLSLVM* vm, void* value);
+void dlslVMStackPop (struct DLSLVM* vm, void* dest);
+
+void dlslVMGlobalGet (struct DLSLVM* vm, void* dest, int location);
+void dlslVMGlobalSet (struct DLSLVM* vm, void* value, int location);
+
+void dlslVMAttrsGet (struct DLSLVM* vm, void* dest, int location);
+void dlslVMAttrsSet (struct DLSLVM* vm, void* value, int location);
+
+void dlslVMBufferValueGet (struct DLSLVM* vm, void* dest, int index);
+void dlslVMBufferValueSet (struct DLSLVM* vm, void* value, int index);
 
 void dlslVMRun (struct DLSLVM* vm);
 

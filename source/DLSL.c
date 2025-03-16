@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
 #include <DLSL.h>
 
 struct DLSLVM dlslCreateVM ()
@@ -10,12 +11,15 @@ struct DLSLVM dlslCreateVM ()
 	vm.code_size = 0;
 
 	vm.stack = NULL;
+	vm.stack_unit_size = 0;
 	vm.stack_size = 0;
 
 	vm.global = NULL;
+	vm.global_unit_size = 0;
 	vm.global_size = 0;
 
 	vm.attrs = NULL;
+	vm.attrs_unit_size = 0;
 	vm.attrs_size = 0;
 
 	return vm;
@@ -27,18 +31,15 @@ void dlslFreeVM (struct DLSLVM* vm)
 	free(vm->stack);
 	free(vm->global);
 	free(vm->attrs);
+	free(vm->dl_BufferValue);
 }
 
-void dlslVMLoad (struct DLSLVM* vm, DLUInt stack_size, DLUInt global_size, DLUInt attrs_size)
+void dlslVMLoad (struct DLSLVM* vm)
 {
-	vm->stack_size = stack_size;
-	vm->stack = calloc(stack_size, sizeof(int));
-
-	vm->global_size = global_size;
-	vm->global = calloc(global_size, sizeof(int));
-
-	vm->attrs_size = attrs_size;
-	vm->attrs = calloc(attrs_size, sizeof(int));
+	vm->stack = calloc(vm->stack_size, vm->stack_unit_size);
+	vm->global = calloc(vm->global_size, vm->global_unit_size);
+	vm->attrs = calloc(vm->attrs_size, vm->attrs_unit_size);
+	vm->dl_BufferValue = calloc(vm->dl_BufferValue_size, vm->dl_BufferValue_unit_size);
 }
 
 void dlslVMLoadCode (struct DLSLVM* vm, int* code, DLUInt code_size)
@@ -61,16 +62,98 @@ void dlslVMLoadAttrs (struct DLSLVM* vm, struct DLAttrs* attrs)
 
 	while (++index < attrs->capacity)
 	{
-		vm->attrs[index] = *(int*)attrs->values[index];
+		void* attrib_location = vm->attrs + (index * vm->attrs_unit_size);
+		memcpy(attrib_location, attrs->values[index], vm->attrs_unit_size);
 	}
+}
+
+void dlslVMStackGet (struct DLSLVM* vm, void* dest, int delta)
+{
+	memcpy(
+		dest,
+		vm->stack + (vm->stack_pointer + delta) * vm->stack_unit_size,
+		vm->stack_unit_size
+	);
+}
+
+void dlslVMStackPush (struct DLSLVM* vm, void* value)
+{
+	memcpy(
+		vm->stack + vm->stack_pointer * vm->stack_unit_size,
+		value,
+		vm->stack_unit_size
+	);
+	vm->stack_pointer++;
+}
+
+void dlslVMStackPop (struct DLSLVM* vm, void* dest)
+{
+	vm->stack_pointer--;
+	dlslVMStackGet(vm, dest, 0);
+}
+
+void dlslVMGlobalGet (struct DLSLVM* vm, void* dest, int location)
+{
+	memcpy(
+		dest,
+		vm->global + location * vm->global_unit_size,
+		vm->global_unit_size
+	);
+}
+
+void dlslVMGlobalSet (struct DLSLVM* vm, void* value, int location)
+{
+	memcpy(
+		vm->global + location * vm->global_unit_size,
+		value,
+		vm->global_unit_size
+	);
+}
+
+void dlslVMAttrsGet (struct DLSLVM* vm, void* dest, int location)
+{
+	memcpy(
+		dest,
+		vm->attrs + location * vm->attrs_unit_size,
+		vm->attrs_unit_size
+	);
+}
+
+void dlslVMAttrsSet (struct DLSLVM* vm, void* value, int location)
+{
+	memcpy(
+		vm->attrs + location * vm->attrs_unit_size,
+		value,
+		vm->attrs_unit_size
+	);
+}
+
+void dlslVMBufferValueGet (struct DLSLVM* vm, void* dest, int index)
+{
+	memcpy(
+		dest,
+		vm->dl_BufferValue + index * vm->dl_BufferValue_unit_size,
+		vm->dl_BufferValue_unit_size
+	);
+}
+
+void dlslVMBufferValueSet (struct DLSLVM* vm, void* value, int index)
+{
+	memcpy(
+		vm->dl_BufferValue + index * vm->dl_BufferValue_unit_size,
+		value,
+		vm->dl_BufferValue_unit_size
+	);
 }
 
 void dlslVMRun (struct DLSLVM* vm)
 {
 	// https://github.com/parrt/simple-virtual-machine-C/blob/master/src/vm.c
+	vm->stack_pointer = -1;
 	int ip, sp, callsp;
 
-	int a, b, addr, offset;
+	double a, b;
+	int addr, offset;
 
 	a = 0;
 	b = 0;
@@ -91,7 +174,7 @@ void dlslVMRun (struct DLSLVM* vm)
 		switch (opcode)
 		{
 			case DLSL_OPCODE_JUMP:
-				ip = vm->stack[ip + 1];
+				dlslVMStackPop(vm, &ip);
 				ip--;
 				break;
 
@@ -100,68 +183,83 @@ void dlslVMRun (struct DLSLVM* vm)
 				break;
 
 			case DLSL_OPCODE_IADD:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = a + b;
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+
+				a = a + b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_ISUB:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = a - b;
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+				
+				a = a - b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_IMUL:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = a * b;
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+				
+				a = a * b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_IDIV:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = a / b;
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+				
+				a = a / b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_PUSH:
-				vm->stack[++sp] = vm->code[++ip];
+				dlslVMStackPush(vm, &vm->code[++ip]);
 				break;
 
 			case DLSL_OPCODE_SCL:
-				a = vm->stack[sp];
-				vm->stack[++sp] = a;
+				dlslVMStackGet(vm, &a, 0);
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_SPN:
-				sp++;
+				vm->stack_pointer++;
 				break;
 
 			case DLSL_OPCODE_POP:
-				sp--;
+				vm->stack_pointer--;
 				break;
 
 			case DLSL_OPCODE_ILT:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = (a < b);
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+
+				a = a < b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_IGT:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = (a > b);
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+
+				a = a > b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_IEQ:
-				b = vm->stack[sp--];
-				a = vm->stack[sp--];
-				vm->stack[++sp] = (a == b);
+				dlslVMStackPop(vm, &b);
+				dlslVMStackPop(vm, &a);
+
+				a = a == b;
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_JMPI:
 				addr = vm->code[++ip];
+				dlslVMStackPop(vm, &a);
 
-				if (vm->stack[sp--] == 1)
+				if (a == 1)
 				{
 					ip = addr - 1;
 				}
@@ -170,8 +268,9 @@ void dlslVMRun (struct DLSLVM* vm)
 
 			case DLSL_OPCODE_JMPN:
 				addr = vm->code[ip++];
+				dlslVMStackPop(vm, &a);
 
-				if (vm->stack[sp--] == 0)
+				if (a == 0)
 				{
 					ip = addr - 1;
 				}
@@ -180,26 +279,38 @@ void dlslVMRun (struct DLSLVM* vm)
 
 			case DLSL_OPCODE_GST:
 				addr = vm->code[++ip];
-				vm->global[addr] = vm->stack[sp--];
+				dlslVMStackPop(vm, &a);
+				dlslVMGlobalSet(vm, &a, addr);
 				break;
 
 			case DLSL_OPCODE_GLD:
 				addr = vm->code[++ip];
-				vm->stack[++sp] = vm->global[addr];
+				dlslVMGlobalGet(vm, &a, addr);
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_ALD:
 				addr = vm->code[++ip];
-				vm->stack[++sp] = vm->attrs[addr];
+				dlslVMAttrsGet(vm, &a, addr);
+				dlslVMStackPush(vm, &a);
 				break;
 
 			case DLSL_OPCODE_AST:
 				addr = vm->code[++ip];
-				vm->attrs[addr] = vm->stack[sp--];
+				dlslVMStackPop(vm, &a);
+				dlslVMAttrsSet(vm, &a, addr);
 				break;
 
-			case DLSL_OPCODE_BUFFERVALUE:
-				vm->dl_BufferValue = vm->stack[sp--];
+			case DLSL_OPCODE_BUFFERVALUE_SET:
+				addr = vm->code[++ip];
+				dlslVMStackPop(vm, &a);
+				dlslVMBufferValueSet(vm, &a, addr);
+				break;
+
+			case DLSL_OPCODE_BUFFERVALUE_GET:
+				addr = vm->code[++ip];
+				dlslVMBufferValueSet(vm, &a, addr);
+				dlslVMStackPush(vm, &a);
 				break;
 		}
 	}

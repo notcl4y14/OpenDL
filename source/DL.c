@@ -113,7 +113,16 @@ void dlInit ()
 	_DL_paths_count = 0;
 
 	_DL_dlsl_vm = dlslCreateVM();
-	dlslVMLoad(&_DL_dlsl_vm, 64, 64, 64);
+	_DL_dlsl_vm.stack_unit_size = sizeof(double);
+	_DL_dlsl_vm.stack_size = 64;
+
+	_DL_dlsl_vm.global_unit_size = sizeof(double);
+	_DL_dlsl_vm.global_size = 64;
+
+	_DL_dlsl_vm.dl_BufferValue_unit_size = sizeof(double);
+	_DL_dlsl_vm.dl_BufferValue_size = 1;
+
+	dlslVMLoad(&_DL_dlsl_vm);
 }
 
 void dlTerminate ()
@@ -185,6 +194,9 @@ DLUInt dlCreateShader ()
 	shader.buf_attrs.vsize = NULL;
 	shader.buf_attrs.attribs = NULL;
 
+	shader.code.code = NULL;
+	shader.code.code_size = 0;
+
 	int index = shader_getFirstAvailable();
 	_DL_shaders_values[index] = shader;
 	_DL_shaders_count++;
@@ -235,24 +247,24 @@ void dlFreeShader (DLUInt shader)
 	_DL_shaders_count--;
 }
 
-void dlShaderInit (DLUInt shader, int attrs_capacity, int buf_attrs_capacity)
+void dlShaderInit (DLUInt shader, DLUInt attrs_capacity, DLUInt buf_attrs_capacity)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
 
 	_shader->attrs.capacity = attrs_capacity;
-	_shader->attrs.keys = calloc(attrs_capacity, sizeof(char*));
-	_shader->attrs.values = calloc(attrs_capacity, sizeof(void*));
+	_shader->attrs.keys = calloc(_shader->attrs.capacity, sizeof(char*));
+	_shader->attrs.values = calloc(_shader->attrs.capacity, sizeof(void*));
 
 	_shader->buf_attrs.capacity = buf_attrs_capacity;
 	_shader->buf_attrs.count = 0;
 	_shader->buf_attrs.buffers = calloc(_shader->buf_attrs.capacity, sizeof(void*));
-	_shader->buf_attrs.voffset = calloc(_shader->buf_attrs.capacity, sizeof(int));
-	_shader->buf_attrs.vstride = calloc(_shader->buf_attrs.capacity, sizeof(int));
-	_shader->buf_attrs.vsize = calloc(_shader->buf_attrs.capacity, sizeof(int));
-	_shader->buf_attrs.attribs = calloc(_shader->buf_attrs.capacity, sizeof(int));
+	_shader->buf_attrs.voffset = calloc(_shader->buf_attrs.capacity, sizeof(DLUInt));
+	_shader->buf_attrs.vstride = calloc(_shader->buf_attrs.capacity, sizeof(DLUInt));
+	_shader->buf_attrs.vsize = calloc(_shader->buf_attrs.capacity, sizeof(DLUInt));
+	_shader->buf_attrs.attribs = calloc(_shader->buf_attrs.capacity, sizeof(DLUInt));
 }
 
-void dlShaderBindAttribID (DLUInt shader, char* id, int index)
+void dlShaderBindAttribID (DLUInt shader, char* id, DLUInt index)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
 
@@ -260,7 +272,7 @@ void dlShaderBindAttribID (DLUInt shader, char* id, int index)
 	strcpy(_shader->attrs.keys[index], id);
 }
 
-void dlShaderLoadCode (DLUInt shader, int* code, int code_size)
+void dlShaderLoadCode (DLUInt shader, int* code, DLUInt code_size)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
 
@@ -294,7 +306,7 @@ DLUInt dlShaderGetAttribIndex (DLUInt shader, char* id)
 	return -1;
 }
 
-void dlShaderBindUniformAttrib (DLUInt shader, int index, void* attrib)
+void dlShaderBindUniformAttrib (DLUInt shader, DLUInt index, void* attrib)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
 	_shader->attrs.values[index] = attrib;
@@ -310,11 +322,52 @@ void dlShaderBindBufferAttrib (DLUInt shader, void* buffer, DLUInt voffset, DLUI
 	{
 		_shader->buf_attrs.capacity = _shader->buf_attrs.capacity * 2;
 
+		// int size = _shader->buf_attrs.capacity * sizeof(void*);
+
+		// printf("Requested allocated memory: %d\n", size);
+
 		_shader->buf_attrs.buffers = realloc(_shader->buf_attrs.buffers, _shader->buf_attrs.capacity * sizeof(void*));
 		_shader->buf_attrs.voffset = realloc(_shader->buf_attrs.voffset, _shader->buf_attrs.capacity * sizeof(DLUInt));
 		_shader->buf_attrs.vstride = realloc(_shader->buf_attrs.vstride, _shader->buf_attrs.capacity * sizeof(DLUInt));
 		_shader->buf_attrs.vsize = realloc(_shader->buf_attrs.vsize, _shader->buf_attrs.capacity * sizeof(DLUInt));
 		_shader->buf_attrs.attribs = realloc(_shader->buf_attrs.attribs, _shader->buf_attrs.capacity * sizeof(DLUInt));
+
+		// if
+		// (
+		// 	_shader->buf_attrs.buffers == NULL ||
+		// 	_shader->buf_attrs.voffset == NULL ||
+		// 	_shader->buf_attrs.vstride == NULL ||
+		// 	_shader->buf_attrs.vsize == NULL ||
+		// 	_shader->buf_attrs.attribs == NULL
+		// )
+		// {
+		// 	printf("NULL pointer\n");
+		// }
+
+		// if (_shader->buf_attrs.buffers == NULL)
+		// {
+		// 	printf("buffers is NULL\n");
+		// }
+
+		// if (_shader->buf_attrs.voffset == NULL)
+		// {
+		// 	printf("voffset is NULL\n");
+		// }
+
+		// if (_shader->buf_attrs.vstride == NULL)
+		// {
+		// 	printf("vstride is NULL\n");
+		// }
+
+		// if (_shader->buf_attrs.vsize == NULL)
+		// {
+		// 	printf("vsize is NULL\n");
+		// }
+
+		// if (_shader->buf_attrs.attribs == NULL)
+		// {
+		// 	printf("attribs is NULL\n");
+		// }
 	}
 
 	_shader->buf_attrs.buffers[index] = buffer;
@@ -324,19 +377,61 @@ void dlShaderBindBufferAttrib (DLUInt shader, void* buffer, DLUInt voffset, DLUI
 	_shader->buf_attrs.attribs[index] = attrib;
 }
 
-void dlApplyShader (DLUInt shader, void* dest_buffer, DLUInt buffer_size, DLUInt byte_size)
+void dlApplyShader (DLUInt shader, void* dest_buffer, DLUInt buffer_size, DLUInt byte_size, DLUInt buffer_stride)
 {
 	struct DLShader* _shader = &_DL_shaders_values[shader];
 
+	// Loading the VM code
 	dlslVMLoadCode(&_DL_dlsl_vm, _shader->code.code, _shader->code.code_size);
 
-	int index = -1;
+	// (Re)-Initializing dl_BufferValue for VM
+	_DL_dlsl_vm.dl_BufferValue_size = buffer_stride;
+	_DL_dlsl_vm.dl_BufferValue_unit_size = byte_size;
 
-	while (++index < buffer_size)
+	_DL_dlsl_vm.dl_BufferValue = realloc(
+		_DL_dlsl_vm.dl_BufferValue,
+		_DL_dlsl_vm.dl_BufferValue_size * _DL_dlsl_vm.dl_BufferValue_unit_size
+	);
+
+	int index = 0;
+
+	while (index < buffer_size)
 	{
+		// Getting dl_BufferValue's pointer location
+		void* buf_value_location = dest_buffer + (index * byte_size);
+
+		// Applying all Attribute Buffers to Shader
 		shader_applyBufferAttrib (shader, index);
+
+		// Applying dl_BufferValue's pointer location
+		_DL_dlsl_vm.dl_BufferValue = buf_value_location;
+
+		// printf(
+		// 	"Index: %d = %d %d %d %d\n",
+		// 	index,
+		// 	*(int*)buf_value_location,
+		// 	*(int*)(buf_value_location + 1 * byte_size),
+		// 	*(int*)(buf_value_location + 2 * byte_size),
+		// 	*(int*)(buf_value_location + 3 * byte_size)
+		// );
+
+		// Running the code
 		dlslVMRun(&_DL_dlsl_vm);
-		memcpy(dest_buffer + (index * byte_size), &_DL_dlsl_vm.dl_BufferValue, byte_size);
+
+		// printf(
+		// 	"Now: %d = %d %d %d %d\n",
+		// 	index,
+		// 	*(int*)buf_value_location,
+		// 	*(int*)(buf_value_location + 1 * byte_size),
+		// 	*(int*)(buf_value_location + 2 * byte_size),
+		// 	*(int*)(buf_value_location + 3 * byte_size)
+		// );
+
+		// Applying dl_BufferValue to Buffer
+		memcpy(buf_value_location, _DL_dlsl_vm.dl_BufferValue, byte_size * buffer_stride);
+
+		// Advancing index
+		index += buffer_stride;
 	}
 }
 

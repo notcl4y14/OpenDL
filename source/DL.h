@@ -86,16 +86,16 @@ void dlInitialArrayCapacity (DLUInt object, DLUInt capacity);
 DLUInt dlCreateShader ();
 void dlFreeShader (DLUInt shader);
 
-void dlShaderInit (DLUInt shader, int attrs_capacity, int buf_attrs_capacity);
-void dlShaderBindAttribID (DLUInt shader, char* id, int index);
+void dlShaderInit (DLUInt shader, DLUInt attrs_capacity, DLUInt buf_attrs_capacity);
+void dlShaderBindAttribID (DLUInt shader, char* id, DLUInt index);
 
-void dlShaderLoadCode (DLUInt shader, int* code, int code_size);
+void dlShaderLoadCode (DLUInt shader, int* code, DLUInt code_size);
 
 DLUInt dlShaderGetAttribIndex (DLUInt shader, char* id);
-void dlShaderBindUniformAttrib (DLUInt shader, int index, void* attrib);
+void dlShaderBindUniformAttrib (DLUInt shader, DLUInt index, void* attrib);
 void dlShaderBindBufferAttrib (DLUInt shader, void* buffer, DLUInt voffset, DLUInt vstride, DLUInt vsize, DLUInt attrib);
 
-void dlApplyShader (DLUInt shader, void* buffer, DLUInt buffer_size, DLUInt byte_size);
+void dlApplyShader (DLUInt shader, void* buffer, DLUInt buffer_size, DLUInt byte_size, DLUInt buffer_stride);
 
 // DLPath
 DLUInt dlCreatePath ();
