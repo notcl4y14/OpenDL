@@ -1,63 +1,34 @@
-#ifndef DL_H
-#define DL_H
+#ifndef DL_h
+#define DL_h
 
-// Including objects from DLSL.h
-// to prevent header recursion
-// =============================
-struct DLSLVM;
-// =============================
+#define DLuchar unsigned char
+#define DLuint unsigned int
 
-#define DLUChar unsigned char
-#define DLUInt unsigned int
-
-#define DL_TRUE 1
 #define DL_FALSE 0
+#define DL_TRUE 1
 
-#define DL_OBJECT_NONE 0
-#define DL_OBJECT_SHADER 1
-#define DL_OBJECT_PATH 2
-#define DL_OBJECT_ALL 3
-
+struct DLBuffer;
 struct DLShader;
 struct DLPath;
-
 struct DLAttrs;
-struct DLBufAttrs;
-
-struct DLCode;
-
-typedef struct DLShader DLShader;
-typedef struct DLPath DLPath;
 
 struct DLAttrs
 {
-	int capacity;
+	DLuint capacity;
 	char** keys;
 	void** values;
 };
 
-struct DLBufAttrs
+struct DLBuffer
 {
-	int capacity;
-	int count;
-	void**    buffers;
-	DLUInt*   voffset;
-	DLUInt*   vstride;
-	DLUInt*   vsize;
-	DLUInt*   attribs;
-};
-
-struct DLCode
-{
-	int*   code;
-	DLUInt code_size;
+	void* buffer;
+	DLuint size;
+	DLuint usize;
 };
 
 struct DLShader
 {
-	struct DLCode code;
 	struct DLAttrs attrs;
-	struct DLBufAttrs buf_attrs;
 };
 
 struct DLPath
@@ -65,48 +36,49 @@ struct DLPath
 	struct DLAttrs attrs;
 };
 
-extern struct DLShader* _DL_shaders_values;
-extern struct DLPath*   _DL_paths_values;
+extern struct DLBuffer* _DL_Buffers;
+extern struct DLShader* _DL_Shaders;
+extern struct DLPath*   _DL_Paths;
 
-extern DLUInt _DL_shaders_count;
-extern DLUInt _DL_paths_count;
+extern DLuint _DL_Buffers_count;
+extern DLuint _DL_Shaders_count;
+extern DLuint _DL_Paths_count;
 
-extern DLUInt _DL_shaders_capacity;
-extern DLUInt _DL_paths_capacity;
-
-extern struct DLSLVM _DL_dlsl_vm;
+extern DLuint _DL_Buffers_capacity;
+extern DLuint _DL_Shaders_capacity;
+extern DLuint _DL_Paths_capacity;
 
 // DL
-void dlInit ();
-void dlTerminate ();
+void DL_init ();
+void DL_terminate ();
 
-void dlInitialArrayCapacity (DLUInt object, DLUInt capacity);
+// DLBuffer
+DLuint DL_buffer_generate (void* buffer, DLuint buf_size, DLuint buf_item_size);
+DLuint DL_buffer_bind (void* buffer, DLuint buf_size, DLuint buf_item_size);
+void DL_buffer_free (DLuint buffer);
 
 // DLShader
-DLUInt dlCreateShader ();
-void dlFreeShader (DLUInt shader);
+DLuint DL_shader_create ();
+void DL_shader_free (DLuint shader);
 
-void dlShaderInit (DLUInt shader, DLUInt attrs_capacity, DLUInt buf_attrs_capacity);
-void dlShaderBindAttribID (DLUInt shader, char* id, DLUInt index);
+void DL_shader_load (DLuint shader);
+void DL_shader_bindAttribId (DLuint shader, char* attrib_id, DLuint attrib_loc);
 
-void dlShaderLoadCode (DLUInt shader, int* code, DLUInt code_size);
+DLuint DL_shader_getAttribLocation (DLuint shader, char* attrib_id);
+void DL_shader_bindAttrib (DLuint shader, DLuint attrib_loc, void* attrib_ptr);
 
-DLUInt dlShaderGetAttribIndex (DLUInt shader, char* id);
-void dlShaderBindUniformAttrib (DLUInt shader, DLUInt index, void* attrib);
-void dlShaderBindBufferAttrib (DLUInt shader, void* buffer, DLUInt voffset, DLUInt vstride, DLUInt vsize, DLUInt attrib);
-
-void dlApplyShader (DLUInt shader, void* buffer, DLUInt buffer_size, DLUInt byte_size, DLUInt buffer_stride);
+void DL_shader_apply (DLuint shader, DLuint buffer);
 
 // DLPath
-DLUInt dlCreatePath ();
-void dlFreePath ();
+DLuint DL_path_create ();
+void DL_path_free (DLuint path);
 
-void dlPathInit (DLUInt path, int attrs_capacity);
-void dlPathBindAttribID (DLUInt path, char* id, int index);
+void DL_path_load (DLuint path);
+void DL_path_bindAttribId (DLuint shader, char* attrib_id, DLuint attrib_loc);
 
-DLUInt dlPathGetAttribIndex (DLUInt path, char* id);
-void dlPathBindUniformAttrib (DLUInt path, int index, void* attrib);
+DLuint DL_path_getAttribLocation (DLuint path, char* attrib_id);
+void DL_path_bindAttrib (DLuint shader, DLuint attrib_loc, void* attrib_ptr);
 
-void dlApplyPath (DLUInt path, void* buffer, DLUInt buffer_size, DLUInt byte_size);
+void DL_path_apply (DLuint path, DLuint buffer);
 
 #endif
