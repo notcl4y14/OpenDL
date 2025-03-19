@@ -139,16 +139,16 @@ DLuint dlCreateBuffer (DLuint buf_size, DLuint buf_usize)
 {
 	struct DLBuffer _buffer;
 
-	_buffer.buffer = calloc(_buffer.size, _buffer.usize);
 	_buffer.size = buf_size;
 	_buffer.usize = buf_usize;
+	_buffer.buffer = calloc(_buffer.size, _buffer.usize);
 
 	return DL_buffers_add(_buffer);
 }
 
 void dlFreeBuffer (DLuint buffer)
 {
-	struct DLBuffer* _buffer = &DL_buffers[buffer];
+	struct DLBuffer* _buffer = &_DL_buffers[buffer];
 
 	free(_buffer->buffer);
 
@@ -157,14 +157,14 @@ void dlFreeBuffer (DLuint buffer)
 
 void dlBufferLoad (DLuint buffer, void* source)
 {
-	struct DLBuffer* _buffer = &DL_buffers[buffer];
+	struct DLBuffer* _buffer = &_DL_buffers[buffer];
 
 	DLuint size = _buffer->size * _buffer->usize;
 
 	// Clear the data in case the source is shorter than
 	// buffer's capacity.
-	memset(_buffer.buffer, 0, size);
-	memcpy(_buffer.buffer, source, size);
+	memset(_buffer->buffer, 0, size);
+	memcpy(_buffer->buffer, source, size);
 }
 
 // 
@@ -276,7 +276,7 @@ void dlFreePath (DLuint path)
 
 	free(_path->attrs.keys);
 	free(_path->attrs.values);
-	
+
 	_DL_paths_count--;
 }
 
