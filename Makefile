@@ -1,11 +1,11 @@
-source = source/DL.c
-include = source
+# Output Directory
 output_dir = bin
-output_file = DL.o
-flags = -Wall --pedantic
-# flags = -w
+
+# Default Warning Flags
+flags_warnings = -Wall -Wextra --pedantic
+
+# No Warning Flags
+# flags_warnings = -w
 
 build:
-	gcc -c source/DL.c -Isource -o ${output_dir}/DL_DL.o ${flags}
-	gcc -c source/DLSL.c -Isource -o ${output_dir}/DL_DLSL.o ${flags}
-	gcc -r ${output_dir}/DL_DL.o ${output_dir}/DL_DLSL.o -o ${output_dir}/DL.o ${flags}
+	gcc -c source/DL.c -Isource -o ${output_dir}/DL.o ${flags_warnings}

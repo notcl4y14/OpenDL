@@ -1,29 +1,47 @@
 #ifndef DL_h
 #define DL_h
 
-#define DLuchar unsigned char
-#define DLuint unsigned int
+/* Type defines for DL.
+ */
+typedef unsigned int size_dl;
+typedef unsigned int loc_dl;
 
-#define DL_FALSE 0
-#define DL_TRUE 1
-
+/* DL Objects - Declarations.
+ */
 struct DLBuffer;
+struct DLAttrs;
 struct DLShader;
 struct DLPath;
-struct DLAttrs;
+
+/* Global DL Object Arrays.
+ */
+// TODO: Add an indicator that tells whether the object is available or not
+extern struct DLBuffer* DLarray_buffers;
+extern struct DLShader* DLarray_shaders;
+extern struct DLPath* DLarray_paths;
+
+extern size_dl DLarray_buffers_capacity;
+extern size_dl DLarray_shaders_capacity;
+extern size_dl DLarray_paths_capacity;
+
+extern size_dl DLarray_buffers_count;
+extern size_dl DLarray_shaders_count;
+extern size_dl DLarray_paths_count;
+
+/* DL Objects - Definitions.
+ */
+struct DLBuffer
+{
+	void*   data;
+	size_dl size;
+	size_dl usize;
+};
 
 struct DLAttrs
 {
-	DLuint capacity;
-	char** keys;
-	void** values;
-};
-
-struct DLBuffer
-{
-	void* buffer;
-	DLuint size;
-	DLuint usize;
+	void**  data;
+	char**  keys;
+	size_dl capacity;
 };
 
 struct DLShader
@@ -36,51 +54,73 @@ struct DLPath
 	struct DLAttrs attrs;
 };
 
-extern struct DLBuffer* _DL_buffers;
-extern struct DLShader* _DL_shaders;
-extern struct DLPath*   _DL_paths;
+/* DL "private" methods.
+ */
 
-extern DLuint _DL_buffers_count;
-extern DLuint _DL_shaders_count;
-extern DLuint _DL_paths_count;
+// DL
+loc_dl DL_arrayBufferAdd (struct DLBuffer buffer);
+loc_dl DL_arrayShaderAdd (struct DLShader shader);
+loc_dl DL_arrayPathAdd (struct DLPath path);
 
-extern DLuint _DL_buffers_capacity;
-extern DLuint _DL_shaders_capacity;
-extern DLuint _DL_paths_capacity;
+struct DLBuffer* DL_arrayBufferGet (loc_dl buffer);
+struct DLShader* DL_arrayShaderGet (loc_dl shader);
+struct DLPath* DL_arrayPathGet (loc_dl path);
+
+// DLBuffer
+struct DLBuffer DL_createBuffer (size_dl size, size_dl usize);
+void DL_freeBuffer (struct DLBuffer* buffer);
+
+void DL_bufferGetData (struct DLBuffer* buffer, void* to);
+void DL_bufferLoadData (struct DLBuffer* buffer, void* data);
+
+// DLAttrs
+struct DLAttrs DL_createAttrs (size_dl capacity);
+void DL_freeAttrs (struct DLAttrs* attrs);
+
+loc_dl DL_getAttribLocation (struct DLAttrs* attrs, char* key);
+void DL_bindAttribLocation (struct DLAttrs* attrs, loc_dl location, char* key);
+void DL_bindAttribPointer (struct DLAttrs* attrs, loc_dl location, void* pointer);
+
+// DLShader
+struct DLShader DL_createShader ();
+void DL_freeShader (struct DLShader* shader);
+
+// void DL_initShader (struct DLShader* shader, size_dl attrs_capacity);
+
+// DLPath
+struct DLPath DL_createPath ();
+void DL_freePath (struct DLPath* path);
+
+// void DL_initPath (struct DLPath* path, size_dl attrs_capacity);
+
+/* DL public methods.
+ */
 
 // DL
 void dlInit ();
 void dlTerminate ();
 
 // DLBuffer
-DLuint dlCreateBuffer (DLuint buf_size, DLuint buf_item_size);
-void dlFreeBuffer (DLuint buffer);
+loc_dl dlCreateBuffer (size_dl size, size_dl usize);
+void dlFreeBuffer (loc_dl buffer);
 
-void dlBufferLoad (DLuint buffer, void* source);
-void dlBufferGetData (DLuint buffer, void* dest);
+void dlBufferGetData (loc_dl buffer, void* to);
+void dlBufferLoadData (loc_dl buffer, void* data);
 
 // DLShader
-DLuint dlCreateShader ();
-void dlFreeShader (DLuint shader);
+loc_dl dlCreateShader ();
+void dlFreeShader (loc_dl shader);
 
-void dlInitShader (DLuint shader);
-
-DLuint dlShaderGetAttribLocation (DLuint shader, char* attrib_id);
-void dlShaderBindAttribLocation (DLuint shader, char* attrib_id, DLuint attrib_loc);
-void dlShaderBindAttrib (DLuint shader, DLuint attrib_loc, void* attrib_ptr);
-
-void dlApplyShader (DLuint shader, DLuint buffer);
+loc_dl dlShaderGetAttribLocation (loc_dl shader, char* key);
+void dlShaderBindAttribLocation (loc_dl shader, loc_dl location, char* key);
+void dlShaderBindAttribPointer (loc_dl shader, loc_dl location, void* pointer);
 
 // DLPath
-DLuint dlCreatePath ();
-void dlFreePath (DLuint path);
+loc_dl dlCreatePath ();
+void dlFreePath (loc_dl path);
 
-void dlInitPath (DLuint path);
-
-DLuint dlPathGetAttribLocation (DLuint path, char* attrib_id);
-void dlPathBindAttribLocation (DLuint path, char* attrib_id, DLuint attrib_loc);
-void dlPathBindAttrib (DLuint path, DLuint attrib_loc, void* attrib_ptr);
-
-void dlApplyPath (DLuint path, DLuint buffer, void (*test_func)(struct DLAttrs* attrs, struct DLBuffer* buffer));
+loc_dl dlPathGetAttribLocation (loc_dl path, char* key);
+void dlPathBindAttribLocation (loc_dl path, loc_dl location, char* key);
+void dlPathBindAttribPointer (loc_dl path, loc_dl location, void* pointer);
 
 #endif
