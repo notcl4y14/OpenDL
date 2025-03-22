@@ -114,18 +114,21 @@ void dlTerminate ()
 	DLuint arr_index;
 
 	arr_index = -1;
+	
 	while (++arr_index < _DL_buffers_capacity)
 	{
 		dlFreeBuffer(arr_index);
 	}
 
 	arr_index = -1;
+	
 	while (++arr_index < _DL_shaders_capacity)
 	{
 		dlFreeShader(arr_index);
 	}
 
 	arr_index = -1;
+	
 	while (++arr_index < _DL_paths_capacity)
 	{
 		dlFreePath(arr_index);
@@ -137,13 +140,13 @@ void dlTerminate ()
 
 DLuint dlCreateBuffer (DLuint buf_size, DLuint buf_usize)
 {
-	struct DLBuffer _buffer;
+	struct DLBuffer buffer;
 
-	_buffer.size = buf_size;
-	_buffer.usize = buf_usize;
-	_buffer.buffer = calloc(_buffer.size, _buffer.usize);
+	buffer.size = buf_size;
+	buffer.usize = buf_usize;
+	buffer.buffer = calloc(buffer.size, buffer.usize);
 
-	return DL_buffers_add(_buffer);
+	return DL_buffers_add(buffer);
 }
 
 void dlFreeBuffer (DLuint buffer)
@@ -155,6 +158,8 @@ void dlFreeBuffer (DLuint buffer)
 	_DL_buffers_count--;
 }
 
+// 
+
 void dlBufferLoad (DLuint buffer, void* source)
 {
 	struct DLBuffer* _buffer = &_DL_buffers[buffer];
@@ -165,6 +170,15 @@ void dlBufferLoad (DLuint buffer, void* source)
 	// buffer's capacity.
 	memset(_buffer->buffer, 0, size);
 	memcpy(_buffer->buffer, source, size);
+}
+
+void dlBufferGetData (DLuint buffer, void* dest)
+{
+	struct DLBuffer* _buffer = &_DL_buffers[buffer];
+
+	DLuint size = _buffer->size * _buffer->usize;
+
+	memcpy(dest, _buffer->buffer, size);
 }
 
 // 
@@ -208,16 +222,6 @@ void dlInitShader (DLuint shader)
 	_shader->attrs.values = calloc(_shader->attrs.capacity, sizeof(void*));
 }
 
-void dlShaderBindAttribID (DLuint shader, char* attrib_id, DLuint attrib_loc)
-{
-	DLuint attrib_id_len = strlen(attrib_id);
-
-	struct DLShader* _shader = &_DL_shaders[shader];
-
-	_shader->attrs.keys[attrib_loc] = malloc(attrib_id_len * sizeof(char));
-	strcpy(_shader->attrs.keys[attrib_loc], attrib_id);
-}
-
 // 
 
 DLuint dlShaderGetAttribLocation (DLuint shader, char* attrib_id)
@@ -235,6 +239,16 @@ DLuint dlShaderGetAttribLocation (DLuint shader, char* attrib_id)
 	}
 
 	return -1;
+}
+
+void dlShaderBindAttribLocation (DLuint shader, char* attrib_id, DLuint attrib_loc)
+{
+	DLuint attrib_id_len = strlen(attrib_id);
+
+	struct DLShader* _shader = &_DL_shaders[shader];
+
+	_shader->attrs.keys[attrib_loc] = malloc(attrib_id_len * sizeof(char));
+	strcpy(_shader->attrs.keys[attrib_loc], attrib_id);
 }
 
 void dlShaderBindAttrib (DLuint shader, DLuint attrib_loc, void* attrib_ptr)
@@ -290,16 +304,6 @@ void dlInitPath (DLuint path)
 	_path->attrs.values = calloc(_path->attrs.capacity, sizeof(void*));
 }
 
-void dlPathBindAttribID (DLuint path, char* attrib_id, DLuint attrib_loc)
-{
-	DLuint attrib_id_len = strlen(attrib_id);
-
-	struct DLPath* _path = &_DL_paths[path];
-
-	_path->attrs.keys[attrib_loc] = malloc(attrib_id_len * sizeof(char));
-	strcpy(_path->attrs.keys[attrib_loc], attrib_id);
-}
-
 // 
 
 DLuint dlPathGetAttribLocation (DLuint path, char* attrib_id)
@@ -317,6 +321,16 @@ DLuint dlPathGetAttribLocation (DLuint path, char* attrib_id)
 	}
 
 	return -1;
+}
+
+void dlPathBindAttribLocation (DLuint path, char* attrib_id, DLuint attrib_loc)
+{
+	DLuint attrib_id_len = strlen(attrib_id);
+
+	struct DLPath* _path = &_DL_paths[path];
+
+	_path->attrs.keys[attrib_loc] = malloc(attrib_id_len * sizeof(char));
+	strcpy(_path->attrs.keys[attrib_loc], attrib_id);
 }
 
 void dlPathBindAttrib (DLuint path, DLuint attrib_loc, void* attrib_ptr)

@@ -57,15 +57,16 @@ DLuint dlCreateBuffer (DLuint buf_size, DLuint buf_item_size);
 void dlFreeBuffer (DLuint buffer);
 
 void dlBufferLoad (DLuint buffer, void* source);
+void dlBufferGetData (DLuint buffer, void* dest);
 
 // DLShader
 DLuint dlCreateShader ();
 void dlFreeShader (DLuint shader);
 
 void dlInitShader (DLuint shader);
-void dlShaderBindAttribID (DLuint shader, char* attrib_id, DLuint attrib_loc);
 
 DLuint dlShaderGetAttribLocation (DLuint shader, char* attrib_id);
+void dlShaderBindAttribLocation (DLuint shader, char* attrib_id, DLuint attrib_loc);
 void dlShaderBindAttrib (DLuint shader, DLuint attrib_loc, void* attrib_ptr);
 
 void dlApplyShader (DLuint shader, DLuint buffer);
@@ -75,9 +76,9 @@ DLuint dlCreatePath ();
 void dlFreePath (DLuint path);
 
 void dlInitPath (DLuint path);
-void dlPathBindAttribID (DLuint path, char* attrib_id, DLuint attrib_loc);
 
 DLuint dlPathGetAttribLocation (DLuint path, char* attrib_id);
+void dlPathBindAttribLocation (DLuint path, char* attrib_id, DLuint attrib_loc);
 void dlPathBindAttrib (DLuint path, DLuint attrib_loc, void* attrib_ptr);
 
 void dlApplyPath (DLuint path, DLuint buffer, void (*test_func)(struct DLAttrs* attrs, struct DLBuffer* buffer));
