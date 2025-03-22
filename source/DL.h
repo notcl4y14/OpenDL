@@ -80,6 +80,8 @@ void DL_freeAttrs (struct DLAttrs* attrs);
 loc_dl DL_getAttribLocation (struct DLAttrs* attrs, char* key);
 void DL_bindAttribLocation (struct DLAttrs* attrs, loc_dl location, char* key);
 void DL_bindAttribPointer (struct DLAttrs* attrs, loc_dl location, void* pointer);
+void DL_attrsLoadBuffer (struct DLAttrs* attrs, struct DLBuffer* buffer);
+void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, size_dl array_usize);
 
 // DLShader
 struct DLShader DL_createShader ();
@@ -114,6 +116,8 @@ void dlFreeShader (loc_dl shader);
 loc_dl dlShaderGetAttribLocation (loc_dl shader, char* key);
 void dlShaderBindAttribLocation (loc_dl shader, loc_dl location, char* key);
 void dlShaderBindAttribPointer (loc_dl shader, loc_dl location, void* pointer);
+void dlShaderAttrsLoadBuffer (loc_dl shader, loc_dl buffer);
+void dlShaderAttrsLoadArray (loc_dl shader, void* array, size_dl array_usize);
 
 // DLPath
 loc_dl dlCreatePath ();
@@ -122,5 +126,7 @@ void dlFreePath (loc_dl path);
 loc_dl dlPathGetAttribLocation (loc_dl path, char* key);
 void dlPathBindAttribLocation (loc_dl path, loc_dl location, char* key);
 void dlPathBindAttribPointer (loc_dl path, loc_dl location, void* pointer);
+void dlPathAttrsLoadBuffer (loc_dl path, loc_dl buffer);
+void dlPathAttrsLoadArray (loc_dl path, void* array, size_dl array_usize);
 
 #endif

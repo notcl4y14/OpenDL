@@ -204,6 +204,26 @@ void DL_bindAttribPointer (struct DLAttrs* attrs, loc_dl location, void* pointer
 	attrs->data[location] = pointer;
 }
 
+void DL_attrsLoadBuffer (struct DLAttrs* attrs, struct DLBuffer* buffer)
+{
+	loc_dl location = -1;
+
+	while (++location < attrs->capacity)
+	{
+		attrs->data[location] = (char*)(buffer->data) + (location * buffer->usize);
+	}
+}
+
+void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, size_dl array_usize)
+{
+	loc_dl location = -1;
+
+	while (++location < attrs->capacity)
+	{
+		attrs->data[location] = (char*)(array) + (location * array_usize);
+	}
+}
+
 // 
 // 
 
@@ -359,6 +379,16 @@ void dlShaderBindAttribPointer (loc_dl shader, loc_dl location, void* pointer)
 	DL_bindAttribPointer(&DL_arrayShaderGet(shader)->attrs, location, pointer);
 }
 
+void dlShaderAttrsLoadBuffer (loc_dl shader, loc_dl buffer)
+{
+	DL_attrsLoadBuffer(&DL_arrayShaderGet(shader)->attrs, DL_arrayBufferGet(buffer));
+}
+
+void dlShaderAttrsLoadArray (loc_dl shader, void* array, size_dl array_usize)
+{
+	DL_attrsLoadArray(&DL_arrayShaderGet(shader)->attrs, array, array_usize);
+}
+
 // 
 // 
 
@@ -388,4 +418,14 @@ void dlPathBindAttribLocation (loc_dl path, loc_dl location, char* key)
 void dlPathBindAttribPointer (loc_dl path, loc_dl location, void* pointer)
 {
 	DL_bindAttribPointer(&DL_arrayPathGet(path)->attrs, location, pointer);
+}
+
+void dlPathAttrsLoadBuffer (loc_dl path, loc_dl buffer)
+{
+	DL_attrsLoadBuffer(&DL_arrayPathGet(path)->attrs, DL_arrayBufferGet(buffer));
+}
+
+void dlPathAttrsLoadArray (loc_dl path, void* array, size_dl array_usize)
+{
+	DL_attrsLoadArray(&DL_arrayPathGet(path)->attrs, array, array_usize);
 }
