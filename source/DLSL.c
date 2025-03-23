@@ -3,37 +3,66 @@
 
 #include <DLSL.h>
 
-void DLSLRunner_loadCode (struct DLSLRunner* runner, double* code, DLuint code_size)
+// 
+// 
+
+struct DLSLVM DLSL_createVM (size_dl stack_size)
 {
-	runner->code = malloc(code_size * sizeof(double));
-	runner->code_size = code_size;
-	memcpy(runner->code, code, code_size);
+	struct DLSLVM vm;
+
+	vm.code = NULL;
+	vm.code_size = 0;
+
+	vm.stack = calloc(stack_size, sizeof(double));
+	vm.stack_size = stack_size;
+
+	return vm;
 }
 
-void DLSLRunner_run (struct DLSLRunner* runner)
+void DLSL_freeVM (struct DLSLVM* vm)
 {
-	DLuint ip, sp, addr, usize;
-	double a, b, c;
+	if (vm->code)
+	{
+		free(vm->code);
+	}
+
+	free(vm->stack);
+}
+
+// 
+
+void DLSL_vmLoadCode (struct DLSLVM* vm, double* code, size_dl code_size)
+{
+	vm->code = malloc(code_size * sizeof(double));
+	memcpy(vm->code, code, code_size * sizeof(double));
+
+	vm->code_size = code_size;
+}
+
+void DLSL_vmRun (struct DLSLVM* vm)
+{
+	int ip, sp, addr;
+	double a, b;
 
 	ip = -1;
 	sp = -1;
 	addr = 0;
-	usize = 1;
 	a = 0;
 	b = 0;
-	c = 0;
 
-	DLuchar running = 1;
-	DLuchar opcode = -1;
+	char running, opcode;
+
+	running = 1;
+	opcode = 0;
 
 	while (running)
 	{
-		opcode = runner->code[++ip];
+		opcode = vm->code[++ip];
 
 		switch (opcode)
 		{
 			case DLSL_OPCODE_JUMP:
-				ip = runner->code[ip + 1];
+				ip = vm->code[ip + 1];
 				ip--;
 				break;
 
@@ -41,50 +70,69 @@ void DLSLRunner_run (struct DLSLRunner* runner)
 				running = 0;
 				break;
 
-			case DLSL_OPCODE_USIZ:
-				usize = runner->code[++ip];
-				break;
-
 			case DLSL_OPCODE_PUSH:
-				runner->stack[++sp] = runner->code[++ip];
+				vm->stack[++sp] = vm->code[++ip];
 				break;
 
 			case DLSL_OPCODE_POP:
 				sp--;
 				break;
 
-			case DLSL_OPCODE_GLD:
-				addr = runner->code[++ip];
-				runner->stack[++sp] = runner->globals[addr];
-				break;
-
-			case DLSL_OPCODE_GST:
-				addr = runner->code[++ip];
-				runner->globals[addr] = runner->stack[sp--];
-				break;
-
 			case DLSL_OPCODE_IADD:
-				b = runner->stack[sp--];
-				a = runner->stack[sp--];
-				runner->stack[++sp] = a + b;
+				b = vm->stack[sp--];
+				a = vm->stack[sp--];
+				vm->stack[++sp] = a + b;
 				break;
 
 			case DLSL_OPCODE_ISUB:
-				b = runner->stack[sp--];
-				a = runner->stack[sp--];
-				runner->stack[++sp] = a - b;
+				b = vm->stack[sp--];
+				a = vm->stack[sp--];
+				vm->stack[++sp] = a - b;
 				break;
 
 			case DLSL_OPCODE_IMUL:
-				b = runner->stack[sp--];
-				a = runner->stack[sp--];
-				runner->stack[++sp] = a * b;
+				b = vm->stack[sp--];
+				a = vm->stack[sp--];
+				vm->stack[++sp] = a * b;
 				break;
 
 			case DLSL_OPCODE_IDIV:
-				b = runner->stack[sp--];
-				a = runner->stack[sp--];
-				runner->stack[++sp] = a / b;
+				b = vm->stack[sp--];
+				a = vm->stack[sp--];
+				vm->stack[++sp] = a / b;
+				break;
+
+			case DLSL_OPCODE_ALD:
+				addr = vm->code[++ip];
+				sp++;
+				// TODO: Change `8` to the size of attribute pointer value.
+				memcpy(&vm->stack[sp], vm->attrs->data[addr], 8);
+				break;
+
+			case DLSL_OPCODE_AST:
+				addr = vm->code[++ip];
+				memcpy(vm->attrs->data[addr], &vm->stack[sp], 8);
+				sp--;
+				break;
+
+			case DLSL_OPCODE_BLD:
+				addr = vm->code[++ip];
+				sp++;
+				memset(&vm->stack[sp], 0, 8);
+				// TODO: Change `vm->buffer->usize` to the lowest size: vm->buffer->usize or sizeof(double).
+				memcpy(
+					&vm->stack[sp],
+					(char*)(vm->buffer->data) + (addr * vm->buffer->usize),
+					vm->buffer->usize);
+				break;
+
+			case DLSL_OPCODE_BST:
+				addr = vm->code[++ip];
+				memcpy(
+					(char*)(vm->buffer->data) + (addr * vm->buffer->usize),
+					&vm->stack[sp],
+					vm->buffer->usize);
+				sp--;
 				break;
 		}
 	}
