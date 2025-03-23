@@ -13,6 +13,11 @@ struct DLAttrs;
 struct DLShader;
 struct DLPath;
 
+/* DLSL Object Declaration.
+ * This is used to avoid header recursion.
+ */
+struct DLSLVM;
+
 /* Global DL Object Arrays.
  */
 // TODO: Add an indicator that tells whether the object is available or not
@@ -27,6 +32,8 @@ extern size_dl DLarray_paths_capacity;
 extern size_dl DLarray_buffers_count;
 extern size_dl DLarray_shaders_count;
 extern size_dl DLarray_paths_count;
+
+extern struct DLSLVM DL_vm;
 
 /* DL Objects - Definitions.
  */
@@ -44,14 +51,22 @@ struct DLAttrs
 	size_dl capacity;
 };
 
+struct DLCode
+{
+	double* data;
+	size_dl size;
+};
+
 struct DLShader
 {
 	struct DLAttrs attrs;
+	struct DLCode code;
 };
 
 struct DLPath
 {
 	struct DLAttrs attrs;
+	struct DLCode code;
 };
 
 /* DL "private" methods.
@@ -82,6 +97,12 @@ void DL_bindAttribLocation (struct DLAttrs* attrs, loc_dl location, char* key);
 void DL_bindAttribPointer (struct DLAttrs* attrs, loc_dl location, void* pointer);
 void DL_attrsLoadBuffer (struct DLAttrs* attrs, struct DLBuffer* buffer);
 void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, size_dl array_usize);
+
+// DLCode
+struct DLCode DL_createCode ();
+void DL_freeCode (struct DLCode* code);
+
+void DL_codeLoadData (struct DLCode* code, double* data, size_dl data_size);
 
 // DLShader
 struct DLShader DL_createShader ();
@@ -119,6 +140,11 @@ void dlShaderBindAttribPointer (loc_dl shader, loc_dl location, void* pointer);
 void dlShaderAttrsLoadBuffer (loc_dl shader, loc_dl buffer);
 void dlShaderAttrsLoadArray (loc_dl shader, void* array, size_dl array_usize);
 
+// Temporary methods
+void dlShaderLoadCode (loc_dl shader, double* code, size_dl code_size);
+
+void dlApplyShader (loc_dl shader, loc_dl buffer);
+
 // DLPath
 loc_dl dlCreatePath ();
 void dlFreePath (loc_dl path);
@@ -128,5 +154,10 @@ void dlPathBindAttribLocation (loc_dl path, loc_dl location, char* key);
 void dlPathBindAttribPointer (loc_dl path, loc_dl location, void* pointer);
 void dlPathAttrsLoadBuffer (loc_dl path, loc_dl buffer);
 void dlPathAttrsLoadArray (loc_dl path, void* array, size_dl array_usize);
+
+// Temporary methods
+void dlPathLoadCode (loc_dl path, double* code, size_dl code_size);
+
+void dlApplyPath (loc_dl path, loc_dl buffer);
 
 #endif

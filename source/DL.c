@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include <DL.h>
+#include <DLSL.h>
 
 // 
 // 
@@ -17,6 +18,8 @@ size_dl DLarray_paths_capacity;
 size_dl DLarray_buffers_count;
 size_dl DLarray_shaders_count;
 size_dl DLarray_paths_count;
+
+struct DLSLVM DL_vm;
 
 // 
 // 
@@ -227,6 +230,36 @@ void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, size_dl array_usize)
 // 
 // 
 
+struct DLCode DL_createCode ()
+{
+	struct DLCode code;
+
+	code.data = NULL;
+	code.size = 0;
+
+	return code;
+}
+
+void DL_freeCode (struct DLCode* code)
+{
+	free(code->data);
+}
+
+// 
+
+void DL_codeLoadData (struct DLCode* code, double* data, size_dl data_size)
+{
+	size_dl copy_size = data_size * sizeof(double);
+
+	code->data = malloc(copy_size);
+	memcpy(code->data, data, copy_size);
+
+	code->size = data_size;
+}
+
+// 
+// 
+
 struct DLShader DL_createShader ()
 {
 	struct DLShader shader;
@@ -235,12 +268,16 @@ struct DLShader DL_createShader ()
 	shader.attrs.keys = NULL;
 	shader.attrs.capacity = 0;
 
+	shader.code.data = NULL;
+	shader.code.size = 0;
+
 	return shader;
 }
 
 void DL_freeShader (struct DLShader* shader)
 {
 	DL_freeAttrs(&shader->attrs);
+	DL_freeCode(&shader->code);
 }
 
 // 
@@ -254,12 +291,16 @@ struct DLPath DL_createPath ()
 	path.attrs.keys = NULL;
 	path.attrs.capacity = 0;
 
+	path.code.data = NULL;
+	path.code.size = 0;
+
 	return path;
 }
 
 void DL_freePath (struct DLPath* path)
 {
 	DL_freeAttrs(&path->attrs);
+	DL_freeCode(&path->code);
 }
 
 // 
@@ -281,6 +322,8 @@ void dlInit ()
 	DLarray_buffers = calloc(DLarray_buffers_capacity, sizeof(struct DLBuffer));
 	DLarray_shaders = calloc(DLarray_shaders_capacity, sizeof(struct DLShader));
 	DLarray_paths = calloc(DLarray_paths_capacity, sizeof(struct DLPath));
+
+	DL_vm = DLSL_createVM(64);
 }
 
 void dlTerminate ()
@@ -320,6 +363,8 @@ void dlTerminate ()
 	free(DLarray_buffers);
 	free(DLarray_shaders);
 	free(DLarray_paths);
+
+	DLSL_freeVM(&DL_vm);
 }
 
 // 
@@ -390,6 +435,34 @@ void dlShaderAttrsLoadArray (loc_dl shader, void* array, size_dl array_usize)
 }
 
 // 
+
+void dlShaderLoadCode (loc_dl shader, double* code, size_dl code_size)
+{
+	DL_codeLoadData(&DL_arrayShaderGet(shader)->code, code, code_size);
+}
+
+// 
+
+void dlApplyShader (loc_dl shader, loc_dl buffer)
+{
+	struct DLShader* _shader = DL_arrayShaderGet(shader);
+
+	// Free previous loaded VM code
+	if (DL_vm.code != NULL)
+	{
+		free(DL_vm.code);
+	}
+
+	DLSL_vmLoadCode(&DL_vm, _shader->code.data, _shader->code.size);
+
+	DL_vm.attrs = &_shader->attrs;
+	DL_vm.buffer = DL_arrayBufferGet(buffer);
+
+	// Temporarily Shader runs once like Path
+	DLSL_vmRun(&DL_vm);
+}
+
+// 
 // 
 
 loc_dl dlCreatePath ()
@@ -428,4 +501,31 @@ void dlPathAttrsLoadBuffer (loc_dl path, loc_dl buffer)
 void dlPathAttrsLoadArray (loc_dl path, void* array, size_dl array_usize)
 {
 	DL_attrsLoadArray(&DL_arrayPathGet(path)->attrs, array, array_usize);
+}
+
+// 
+
+void dlPathLoadCode (loc_dl path, double* code, size_dl code_size)
+{
+	DL_codeLoadData(&DL_arrayPathGet(path)->code, code, code_size);
+}
+
+// 
+
+void dlApplyPath (loc_dl path, loc_dl buffer)
+{
+	struct DLPath* _path = DL_arrayPathGet(path);
+
+	// Free previous loaded VM code
+	if (DL_vm.code != NULL)
+	{
+		free(DL_vm.code);
+	}
+
+	DLSL_vmLoadCode(&DL_vm, _path->code.data, _path->code.size);
+
+	DL_vm.attrs = &_path->attrs;
+	DL_vm.buffer = DL_arrayBufferGet(buffer);
+
+	DLSL_vmRun(&DL_vm);
 }
