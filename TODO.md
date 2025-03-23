@@ -21,3 +21,7 @@
 	- [x] Create a struct and methods for DLCode
 	- [x] Add DLCode into DLShader and DLPath
 	- [x] Add methods dlApplyShader and dlApplyPath
+
+- [ ] TODO comments:
+	- [ ] DLSL.c:108; DLSL.c:122. Fix this by creating a util function for copying memory chunks with different sizes
+	- [ ] DL.h:23. Fix this by creating new DLarray variables, like `DLarray_buffers_available`
