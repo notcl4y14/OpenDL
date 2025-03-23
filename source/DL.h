@@ -3,8 +3,13 @@
 
 /* Type defines for DL.
  */
+#define DL_TRUE 1
+#define DL_FALSE 0
+
 typedef unsigned int size_dl;
 typedef unsigned int loc_dl;
+
+typedef unsigned char bool_dl;
 
 /* DL Objects - Declarations.
  */
@@ -24,6 +29,10 @@ struct DLSLVM;
 extern struct DLBuffer* DLarray_buffers;
 extern struct DLShader* DLarray_shaders;
 extern struct DLPath* DLarray_paths;
+
+extern bool_dl* DLarray_buffers_unavailable;
+extern bool_dl* DLarray_shaders_unavailable;
+extern bool_dl* DLarray_paths_unavailable;
 
 extern size_dl DLarray_buffers_capacity;
 extern size_dl DLarray_shaders_capacity;
@@ -46,8 +55,9 @@ struct DLBuffer
 
 struct DLAttrs
 {
-	void**  data;
-	char**  keys;
+	void**   v_values;
+	char**   v_keys;
+	size_dl* v_sizes;
 	size_dl capacity;
 };
 
@@ -95,6 +105,7 @@ void DL_freeAttrs (struct DLAttrs* attrs);
 loc_dl DL_getAttribLocation (struct DLAttrs* attrs, char* key);
 void DL_bindAttribLocation (struct DLAttrs* attrs, loc_dl location, char* key);
 void DL_bindAttribPointer (struct DLAttrs* attrs, loc_dl location, void* pointer);
+void DL_bindAttribSize (struct DLAttrs* attrs, loc_dl location, size_dl size);
 void DL_attrsLoadBuffer (struct DLAttrs* attrs, struct DLBuffer* buffer);
 void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, size_dl array_usize);
 
