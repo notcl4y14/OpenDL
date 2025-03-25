@@ -11,26 +11,55 @@ struct DLBuffer* DLarray_buffers;
 struct DLShader* DLarray_shaders;
 struct DLPath* DLarray_paths;
 
-bool_dl* DLarray_buffers_unavailable;
-bool_dl* DLarray_shaders_unavailable;
-bool_dl* DLarray_paths_unavailable;
+DLbool* DLarray_buffers_unavailable;
+DLbool* DLarray_shaders_unavailable;
+DLbool* DLarray_paths_unavailable;
 
-size_dl DLarray_buffers_capacity;
-size_dl DLarray_shaders_capacity;
-size_dl DLarray_paths_capacity;
+DLuint DLarray_buffers_capacity;
+DLuint DLarray_shaders_capacity;
+DLuint DLarray_paths_capacity;
 
-size_dl DLarray_buffers_count;
-size_dl DLarray_shaders_count;
-size_dl DLarray_paths_count;
+DLuint DLarray_buffers_count;
+DLuint DLarray_shaders_count;
+DLuint DLarray_paths_count;
+
+DLuint* DLarray_types;
 
 struct DLSLVM DL_vm;
 
 // 
 // 
 
-loc_dl DL_arrayBufferAdd (struct DLBuffer buffer)
+DLuint DL_getTypeSize (DLtype type)
 {
-	loc_dl location = -1;
+	switch (type)
+	{
+		case DL_BYTE:
+		case DL_UBYTE:
+			return 1;
+
+		case DL_SHORT:
+		case DL_USHORT:
+			return 2;
+
+		case DL_INT:
+		case DL_UINT:
+			return 4;
+
+		case DL_FLOAT:
+			return 4;
+
+		case DL_DOUBLE:
+			return 8;
+
+		default:
+			return 0;
+	}
+}
+
+DLuint DL_arrayBufferAdd (struct DLBuffer buffer)
+{
+	DLuint location = -1;
 
 	while (++location < DLarray_buffers_capacity)
 	{
@@ -53,9 +82,9 @@ loc_dl DL_arrayBufferAdd (struct DLBuffer buffer)
 	return location;
 }
 
-loc_dl DL_arrayShaderAdd (struct DLShader shader)
+DLuint DL_arrayShaderAdd (struct DLShader shader)
 {
-	loc_dl location = -1;
+	DLuint location = -1;
 
 	while (++location < DLarray_shaders_capacity)
 	{
@@ -78,9 +107,9 @@ loc_dl DL_arrayShaderAdd (struct DLShader shader)
 	return location;
 }
 
-loc_dl DL_arrayPathAdd (struct DLPath path)
+DLuint DL_arrayPathAdd (struct DLPath path)
 {
-	loc_dl location = -1;
+	DLuint location = -1;
 
 	while (++location < DLarray_paths_capacity)
 	{
@@ -105,17 +134,17 @@ loc_dl DL_arrayPathAdd (struct DLPath path)
 
 // 
 
-struct DLBuffer* DL_arrayBufferGet (loc_dl location)
+struct DLBuffer* DL_arrayBufferGet (DLuint location)
 {
 	return &DLarray_buffers[location];
 }
 
-struct DLShader* DL_arrayShaderGet (loc_dl location)
+struct DLShader* DL_arrayShaderGet (DLuint location)
 {
 	return &DLarray_shaders[location];
 }
 
-struct DLPath* DL_arrayPathGet (loc_dl location)
+struct DLPath* DL_arrayPathGet (DLuint location)
 {
 	return &DLarray_paths[location];
 }
@@ -123,13 +152,13 @@ struct DLPath* DL_arrayPathGet (loc_dl location)
 // 
 // 
 
-struct DLBuffer DL_createBuffer (size_dl size, size_dl usize)
+struct DLBuffer DL_createBuffer (DLtype type, DLuint size)
 {
 	struct DLBuffer buffer;
 
-	buffer.data = calloc(size, usize);
+	buffer.data = calloc(size, DLarray_types[type]);
+	buffer.type = type;
 	buffer.size = size;
-	buffer.usize = usize;
 
 	return buffer;
 }
@@ -141,27 +170,37 @@ void DL_freeBuffer (struct DLBuffer* buffer)
 
 // 
 
+void DL_bufferGetValue (struct DLBuffer* buffer, DLuint location, void* to)
+{
+	// TODO: optimize this
+	DLuint type_size = DLarray_types[buffer->type];
+	memcpy(to, (char*)(buffer->data) + (location * type_size), type_size);
+}
+
 void DL_bufferGetData (struct DLBuffer* buffer, void* to)
 {
-	memcpy(to, buffer->data, buffer->size * buffer->usize);
+	memcpy(to, buffer->data, buffer->size * DLarray_types[buffer->type]);
 }
 
 void DL_bufferLoadData (struct DLBuffer* buffer, void* data)
 {
-	memset(buffer->data, 0, buffer->size * buffer->usize);
-	memcpy(buffer->data, data, buffer->size * buffer->usize);
+	// TODO: optimize this
+	DLuint type_size = DLarray_types[buffer->type];
+	memset(buffer->data, 0, buffer->size * type_size);
+	memcpy(buffer->data, data, buffer->size * type_size);
 }
 
 // 
 // 
 
-struct DLAttrs DL_createAttrs (size_dl capacity)
+struct DLAttrs DL_createAttrs (DLuint capacity)
 {
 	struct DLAttrs attrs;
 
-	attrs.v_values = calloc(capacity, sizeof(void*));
-	attrs.v_keys = calloc(capacity, sizeof(char*));
-	attrs.v_sizes = calloc(capacity, sizeof(size_dl));
+	attrs.v_values = calloc(capacity, sizeof(DLvoid_p));
+	attrs.v_keys = calloc(capacity, sizeof(DLchar_p));
+	attrs.v_sizes = calloc(capacity, sizeof(DLuint));
+	attrs.v_types = calloc(capacity, sizeof(DLtype));
 	attrs.capacity = capacity;
 
 	return attrs;
@@ -169,7 +208,7 @@ struct DLAttrs DL_createAttrs (size_dl capacity)
 
 void DL_freeAttrs (struct DLAttrs* attrs)
 {
-	loc_dl loop_index = -1;
+	DLuint loop_index = -1;
 
 	while (++loop_index < attrs->capacity)
 	{
@@ -186,13 +225,14 @@ void DL_freeAttrs (struct DLAttrs* attrs)
 	free(attrs->v_values);
 	free(attrs->v_keys);
 	free(attrs->v_sizes);
+	free(attrs->v_types);
 }
 
 // 
 
-loc_dl DL_getAttribLocation (struct DLAttrs* attrs, char* key)
+DLuint DL_getAttribLocation (struct DLAttrs* attrs, char* key)
 {
-	loc_dl loop_index = -1;
+	DLuint loop_index = -1;
 
 	while (++loop_index < attrs->capacity)
 	{
@@ -205,41 +245,55 @@ loc_dl DL_getAttribLocation (struct DLAttrs* attrs, char* key)
 	return -1;
 }
 
-void DL_bindAttribLocation (struct DLAttrs* attrs, loc_dl location, char* key)
+void DL_bindAttribLocation (struct DLAttrs* attrs, DLuint location, char* key)
 {
-	size_dl key_len = strlen(key);
+	DLuint key_len = strlen(key);
 	attrs->v_keys[location] = malloc(key_len);
 	strcpy(attrs->v_keys[location], key);
 }
 
-void DL_bindAttribPointer (struct DLAttrs* attrs, loc_dl location, void* pointer)
+void DL_bindAttribPointer (struct DLAttrs* attrs, DLuint location, void* pointer)
 {
 	attrs->v_values[location] = pointer;
 }
 
-void DL_bindAttribSize (struct DLAttrs* attrs, loc_dl location, size_dl size)
+void DL_bindAttribSize (struct DLAttrs* attrs, DLuint location, DLuint size)
 {
 	attrs->v_sizes[location] = size;
 }
 
+void DL_bindAttribType (struct DLAttrs* attrs, DLuint location, DLtype type)
+{
+	attrs->v_types[location] = type;
+}
+
 void DL_attrsLoadBuffer (struct DLAttrs* attrs, struct DLBuffer* buffer)
 {
-	loc_dl location = -1;
+	DLuint location = -1;
 
 	while (++location < attrs->capacity)
 	{
-		attrs->v_values[location] = (char*)(buffer->data) + (location * buffer->usize);
+		attrs->v_values[location] = (char*)(buffer->data) + (location * DLarray_types[buffer->type]);
+		attrs->v_sizes[location] = DLarray_types[buffer->type];
 	}
 }
 
-void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, size_dl array_usize)
+void DL_attrsLoadArray (struct DLAttrs* attrs, void* array, DLuint array_usize)
 {
-	loc_dl location = -1;
+	DLuint location = -1;
 
 	while (++location < attrs->capacity)
 	{
 		attrs->v_values[location] = (char*)(array) + (location * array_usize);
+		attrs->v_sizes[location] = array_usize;
 	}
+}
+
+// 
+
+void DL_getAttribValue (struct DLAttrs* attrs, DLuint location, void* to)
+{
+	memcpy(to, attrs->v_values[location], attrs->v_sizes[location]);
 }
 
 // 
@@ -262,9 +316,9 @@ void DL_freeCode (struct DLCode* code)
 
 // 
 
-void DL_codeLoadData (struct DLCode* code, double* data, size_dl data_size)
+void DL_codeLoadData (struct DLCode* code, double* data, DLuint data_size)
 {
-	size_dl copy_size = data_size * sizeof(double);
+	DLuint copy_size = data_size * sizeof(double);
 
 	code->data = malloc(copy_size);
 	memcpy(code->data, data, copy_size);
@@ -281,6 +335,8 @@ struct DLShader DL_createShader ()
 
 	shader.attrs.v_values = NULL;
 	shader.attrs.v_keys = NULL;
+	shader.attrs.v_sizes = NULL;
+	shader.attrs.v_types = NULL;
 	shader.attrs.capacity = 0;
 
 	shader.code.data = NULL;
@@ -304,6 +360,8 @@ struct DLPath DL_createPath ()
 
 	path.attrs.v_values = NULL;
 	path.attrs.v_keys = NULL;
+	path.attrs.v_sizes = NULL;
+	path.attrs.v_types = NULL;
 	path.attrs.capacity = 0;
 
 	path.code.data = NULL;
@@ -338,22 +396,35 @@ void dlInit ()
 	DLarray_shaders = calloc(DLarray_shaders_capacity, sizeof(struct DLShader));
 	DLarray_paths = calloc(DLarray_paths_capacity, sizeof(struct DLPath));
 
-	DLarray_buffers_unavailable = calloc(DLarray_buffers_capacity, sizeof(bool_dl));
-	DLarray_shaders_unavailable = calloc(DLarray_shaders_capacity, sizeof(bool_dl));
-	DLarray_paths_unavailable = calloc(DLarray_paths_capacity, sizeof(bool_dl));
+	DLarray_buffers_unavailable = calloc(DLarray_buffers_capacity, sizeof(DLbool));
+	DLarray_shaders_unavailable = calloc(DLarray_shaders_capacity, sizeof(DLbool));
+	DLarray_paths_unavailable = calloc(DLarray_paths_capacity, sizeof(DLbool));
+
+	DLarray_types = malloc(DL_TYPE_COUNT * sizeof(DLubyte));
+
+	// Manually adding sizes of each type so that the use of
+	// DL_getTypeSize can be avoided
+	DLarray_types[DL_BYTE] = 1;
+	DLarray_types[DL_UBYTE] = 1;
+	DLarray_types[DL_SHORT] = 2;
+	DLarray_types[DL_USHORT] = 2;
+	DLarray_types[DL_INT] = 4;
+	DLarray_types[DL_UINT] = 4;
+	DLarray_types[DL_FLOAT] = 4;
+	DLarray_types[DL_DOUBLE] = 8;
 
 	DL_vm = DLSL_createVM(64);
 }
 
 void dlTerminate ()
 {
-	loc_dl location;
+	DLuint location;
 
 	location = -1;
 
 	while (++location < DLarray_buffers_capacity)
 	{
-		if (DLarray_buffers[location].data != NULL)
+		if (DLarray_buffers_unavailable[location] == DL_TRUE)
 		{
 			DL_freeBuffer(DL_arrayBufferGet(location));
 		}
@@ -363,7 +434,7 @@ void dlTerminate ()
 
 	while (++location < DLarray_shaders_capacity)
 	{
-		if (DLarray_shaders[location].attrs.v_values != NULL)
+		if (DLarray_shaders_unavailable[location] == DL_TRUE)
 		{
 			DL_freeShader(DL_arrayShaderGet(location));
 		}
@@ -373,7 +444,7 @@ void dlTerminate ()
 
 	while (++location < DLarray_paths_capacity)
 	{
-		if (DLarray_paths[location].attrs.v_values != NULL)
+		if (DLarray_paths_unavailable[location] == DL_TRUE)
 		{
 			DL_freePath(DL_arrayPathGet(location));
 		}
@@ -387,19 +458,21 @@ void dlTerminate ()
 	free(DLarray_shaders_unavailable);
 	free(DLarray_paths_unavailable);
 
+	free(DLarray_types);
+
 	DLSL_freeVM(&DL_vm);
 }
 
 // 
 // 
 
-loc_dl dlCreateBuffer (size_dl size, size_dl usize)
+DLuint dlCreateBuffer (DLuint size, DLuint usize)
 {
 	struct DLBuffer buffer = DL_createBuffer(size, usize);
 	return DL_arrayBufferAdd(buffer);
 }
 
-void dlFreeBuffer (loc_dl buffer)
+void dlFreeBuffer (DLuint buffer)
 {
 	DL_freeBuffer(DL_arrayBufferGet(buffer));
 	DLarray_buffers_unavailable[buffer] = DL_FALSE;
@@ -407,12 +480,12 @@ void dlFreeBuffer (loc_dl buffer)
 
 // 
 
-void dlBufferGetData (loc_dl buffer, void* to)
+void dlBufferGetData (DLuint buffer, void* to)
 {
 	DL_bufferGetData(DL_arrayBufferGet(buffer), to);
 }
 
-void dlBufferLoadData (loc_dl buffer, void* data)
+void dlBufferLoadData (DLuint buffer, void* data)
 {
 	DL_bufferLoadData(DL_arrayBufferGet(buffer), data);
 }
@@ -420,13 +493,13 @@ void dlBufferLoadData (loc_dl buffer, void* data)
 // 
 // 
 
-loc_dl dlCreateShader ()
+DLuint dlCreateShader ()
 {
 	struct DLShader shader = DL_createShader();
 	return DL_arrayShaderAdd(shader);
 }
 
-void dlFreeShader (loc_dl shader)
+void dlFreeShader (DLuint shader)
 {
 	DL_freeShader(DL_arrayShaderGet(shader));
 	DLarray_shaders_unavailable[shader] = DL_FALSE;
@@ -434,41 +507,41 @@ void dlFreeShader (loc_dl shader)
 
 // 
 
-loc_dl dlShaderGetAttribLocation (loc_dl shader, char* key)
+DLuint dlShaderGetAttribLocation (DLuint shader, char* key)
 {
 	return DL_getAttribLocation(&DL_arrayShaderGet(shader)->attrs, key);
 }
 
-void dlShaderBindAttribLocation (loc_dl shader, loc_dl location, char* key)
+void dlShaderBindAttribLocation (DLuint shader, DLuint location, char* key)
 {
 	DL_bindAttribLocation(&DL_arrayShaderGet(shader)->attrs, location, key);
 }
 
-void dlShaderBindAttribPointer (loc_dl shader, loc_dl location, void* pointer)
+void dlShaderBindAttribPointer (DLuint shader, DLuint location, void* pointer)
 {
 	DL_bindAttribPointer(&DL_arrayShaderGet(shader)->attrs, location, pointer);
 }
 
-void dlShaderAttrsLoadBuffer (loc_dl shader, loc_dl buffer)
+void dlShaderAttrsLoadBuffer (DLuint shader, DLuint buffer)
 {
 	DL_attrsLoadBuffer(&DL_arrayShaderGet(shader)->attrs, DL_arrayBufferGet(buffer));
 }
 
-void dlShaderAttrsLoadArray (loc_dl shader, void* array, size_dl array_usize)
+void dlShaderAttrsLoadArray (DLuint shader, void* array, DLuint array_usize)
 {
 	DL_attrsLoadArray(&DL_arrayShaderGet(shader)->attrs, array, array_usize);
 }
 
 // 
 
-void dlShaderLoadCode (loc_dl shader, double* code, size_dl code_size)
+void dlShaderLoadCode (DLuint shader, double* code, DLuint code_size)
 {
 	DL_codeLoadData(&DL_arrayShaderGet(shader)->code, code, code_size);
 }
 
 // 
 
-void dlApplyShader (loc_dl shader, loc_dl buffer)
+void dlApplyShader (DLuint shader, DLuint buffer)
 {
 	struct DLShader* _shader = DL_arrayShaderGet(shader);
 
@@ -490,13 +563,13 @@ void dlApplyShader (loc_dl shader, loc_dl buffer)
 // 
 // 
 
-loc_dl dlCreatePath ()
+DLuint dlCreatePath ()
 {
 	struct DLPath path = DL_createPath();
 	return DL_arrayPathAdd(path);
 }
 
-void dlFreePath (loc_dl path)
+void dlFreePath (DLuint path)
 {
 	DL_freePath(DL_arrayPathGet(path));
 	DLarray_paths_unavailable[path] = DL_FALSE;
@@ -504,41 +577,41 @@ void dlFreePath (loc_dl path)
 
 // 
 
-loc_dl dlPathGetAttribLocation (loc_dl path, char* key)
+DLuint dlPathGetAttribLocation (DLuint path, char* key)
 {
 	return DL_getAttribLocation(&DL_arrayPathGet(path)->attrs, key);
 }
 
-void dlPathBindAttribLocation (loc_dl path, loc_dl location, char* key)
+void dlPathBindAttribLocation (DLuint path, DLuint location, char* key)
 {
 	DL_bindAttribLocation(&DL_arrayPathGet(path)->attrs, location, key);
 }
 
-void dlPathBindAttribPointer (loc_dl path, loc_dl location, void* pointer)
+void dlPathBindAttribPointer (DLuint path, DLuint location, void* pointer)
 {
 	DL_bindAttribPointer(&DL_arrayPathGet(path)->attrs, location, pointer);
 }
 
-void dlPathAttrsLoadBuffer (loc_dl path, loc_dl buffer)
+void dlPathAttrsLoadBuffer (DLuint path, DLuint buffer)
 {
 	DL_attrsLoadBuffer(&DL_arrayPathGet(path)->attrs, DL_arrayBufferGet(buffer));
 }
 
-void dlPathAttrsLoadArray (loc_dl path, void* array, size_dl array_usize)
+void dlPathAttrsLoadArray (DLuint path, void* array, DLuint array_usize)
 {
 	DL_attrsLoadArray(&DL_arrayPathGet(path)->attrs, array, array_usize);
 }
 
 // 
 
-void dlPathLoadCode (loc_dl path, double* code, size_dl code_size)
+void dlPathLoadCode (DLuint path, double* code, DLuint code_size)
 {
 	DL_codeLoadData(&DL_arrayPathGet(path)->code, code, code_size);
 }
 
 // 
 
-void dlApplyPath (loc_dl path, loc_dl buffer)
+void dlApplyPath (DLuint path, DLuint buffer)
 {
 	struct DLPath* _path = DL_arrayPathGet(path);
 

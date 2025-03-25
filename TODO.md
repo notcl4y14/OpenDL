@@ -23,9 +23,4 @@
 	- [x] Add methods dlApplyShader and dlApplyPath
 
 - [x] TODO comments:
-	- [ ] ~~DLSL.c:108; DLSL.c:122. Fix this by creating a util function for copying memory chunks with different sizes~~
-		+ This requires casting
-	- [x] DL.h:23. Fix this by creating new DLarray variables, like `DLarray_buffers_available`
-
-- [ ] DLSL Redesign:
-	- [ ] Make VM support primitive types like char, short, int, float, double instead of just double
+	- [x] Optimize the use of DL_getTypeSize
