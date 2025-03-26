@@ -24,6 +24,7 @@ DLuint DLarray_shaders_count;
 DLuint DLarray_paths_count;
 
 DLuint* DLarray_types;
+DLerror DL_error;
 
 struct DLSLVM DL_vm;
 
@@ -352,6 +353,19 @@ void DL_freeShader (struct DLShader* shader)
 }
 
 // 
+
+void DL_shaderBindAttrib_value (struct DLShader* shader, DLuint location)
+{
+	shader->value_attr_loc = location;
+}
+
+void DL_shaderBindAttrib_index (struct DLShader* shader, DLuint location)
+{
+	shader->index_attr_loc = location;
+	shader->attrs.v_types[location] = DL_UINT;
+}
+
+// 
 // 
 
 struct DLPath DL_createPath ()
@@ -374,6 +388,19 @@ void DL_freePath (struct DLPath* path)
 {
 	DL_freeAttrs(&path->attrs);
 	DL_freeCode(&path->code);
+}
+
+// 
+
+void DL_pathBindAttrib_buffer (struct DLPath* path, DLuint location)
+{
+	if (location > path->attrs.capacity)
+	{
+		DL_error = DL_E_LOC_OOB;
+		return;
+	}
+
+	path->buffer_attr_loc = location;
 }
 
 // 
@@ -549,6 +576,10 @@ void dlShaderLoadCode (DLuint shader, double* code, DLuint code_size)
 void dlApplyShader (DLuint shader, DLuint buffer)
 {
 	struct DLShader* _shader = DL_arrayShaderGet(shader);
+	struct DLBuffer* _buffer = DL_arrayBufferGet(buffer);
+
+	// Initializing VM
+	DL_vm.attrs = &_shader->attrs;
 
 	// Free previous loaded VM code
 	if (DL_vm.code != NULL)
@@ -558,11 +589,23 @@ void dlApplyShader (DLuint shader, DLuint buffer)
 
 	DLSL_vmLoadCode(&DL_vm, _shader->code.data, _shader->code.size);
 
-	DL_vm.attrs = &_shader->attrs;
-	DL_vm.buffer = DL_arrayBufferGet(buffer);
+	// Initializing variables that are "constant" in a function
+	DLuint buf_unit_size = DLarray_types[_buffer->type];
 
-	// Temporarily Shader runs once like Path
-	DLSL_vmRun(&DL_vm);
+	_shader->attrs.v_types[_shader->value_attr_loc] = _buffer->type;
+
+	DLuint buf_index = -1;
+
+	while (++buf_index < _buffer->size)
+	{
+		DLvoid_p value = (DLchar_p)(_buffer->data) + (buf_index * buf_unit_size);
+
+		// Updating Attributes
+		_shader->attrs.v_values[_shader->value_attr_loc] = value;
+		_shader->attrs.v_values[_shader->index_attr_loc] = &buf_index;;
+
+		DLSL_vmRun(&DL_vm);
+	}
 }
 
 // 
@@ -624,6 +667,13 @@ void dlPathLoadCode (DLuint path, double* code, DLuint code_size)
 void dlApplyPath (DLuint path, DLuint buffer)
 {
 	struct DLPath* _path = DL_arrayPathGet(path);
+	struct DLBuffer* _buffer = DL_arrayBufferGet(buffer);
+
+	// Initializing Attributes
+	_path->attrs.v_values[_path->buffer_attr_loc] = _buffer;
+
+	// Initializing VM
+	DL_vm.attrs = &_path->attrs;
 
 	// Free previous loaded VM code
 	if (DL_vm.code != NULL)
@@ -633,8 +683,6 @@ void dlApplyPath (DLuint path, DLuint buffer)
 
 	DLSL_vmLoadCode(&DL_vm, _path->code.data, _path->code.size);
 
-	DL_vm.attrs = &_path->attrs;
-	DL_vm.buffer = DL_arrayBufferGet(buffer);
-
+	// Running VM
 	DLSL_vmRun(&DL_vm);
 }

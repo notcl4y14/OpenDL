@@ -79,6 +79,7 @@ void DLSL_vmRun (struct DLSLVM* vm)
 	while (running)
 	{
 		opcode = vm->code[++ip];
+		printf("opcode: %d\n", opcode);
 
 		switch (opcode)
 		{
@@ -159,7 +160,8 @@ void DLSL_vmRun (struct DLSLVM* vm)
 					case DL_USHORT:
 					case DL_INT:
 					case DL_UINT:
-						v_int = vm->stack[sp--];
+						v_int = (int)vm->stack[sp--];
+						printf("v_int: %d\n", v_int);
 						memcpy(vm->attrs->v_values[addr], &v_int, vm->attrs->v_sizes[addr]);
 						break;
 

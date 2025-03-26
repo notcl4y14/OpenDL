@@ -24,6 +24,10 @@
 #define DL_FLOAT   0x07
 #define DL_DOUBLE  0x08
 
+// DLerror
+#define DL_NOERROR     0x00
+#define DL_E_LOC_OOB 0x01
+
 typedef char            DLchar;
 typedef char*           DLchar_p;
 
@@ -41,6 +45,7 @@ typedef double          DLdouble;
 typedef unsigned char DLbool;
 typedef unsigned char DLobject;
 typedef unsigned char DLtype;
+typedef unsigned char DLerror;
 
 /* DL Objects - Declarations.
  */
@@ -74,6 +79,7 @@ extern DLuint DLarray_shaders_count;
 extern DLuint DLarray_paths_count;
 
 extern DLuint* DLarray_types;
+extern DLerror DL_error;
 
 extern struct DLSLVM DL_vm;
 
@@ -95,6 +101,13 @@ struct DLAttrs
 	DLuint capacity;
 };
 
+struct DLAttrib
+{
+	DLvoid_p ptr;
+	DLtype   type;
+	DLuint   size;
+};
+
 struct DLCode
 {
 	double* data;
@@ -105,12 +118,15 @@ struct DLShader
 {
 	struct DLAttrs attrs;
 	struct DLCode code;
+	DLuint value_attr_loc;
+	DLuint index_attr_loc;
 };
 
 struct DLPath
 {
 	struct DLAttrs attrs;
 	struct DLCode code;
+	DLuint buffer_attr_loc;
 };
 
 /* DL "private" methods.
@@ -160,11 +176,16 @@ void DL_codeLoadData (struct DLCode* code, double* data, DLuint data_size);
 struct DLShader DL_createShader ();
 void DL_freeShader (struct DLShader* shader);
 
+void DL_shaderBindAttrib_value (struct DLShader* shader, DLuint location);
+void DL_shaderBindAttrib_index (struct DLShader* shader, DLuint location);
+
 // void DL_initShader (struct DLShader* shader, DLuint attrs_capacity);
 
 // DLPath
 struct DLPath DL_createPath ();
 void DL_freePath (struct DLPath* path);
+
+void DL_pathBindAttrib_buffer (struct DLPath* path, DLuint location);
 
 // void DL_initPath (struct DLPath* path, DLuint attrs_capacity);
 
