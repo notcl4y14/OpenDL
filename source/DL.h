@@ -14,7 +14,6 @@
 
 // DLtype
 #define DL_TYPE_COUNT 8
-// #define DL_CHAR 0
 #define DL_NONE    0x00
 #define DL_BYTE    0x01
 #define DL_UBYTE   0x02
@@ -23,9 +22,7 @@
 #define DL_INT     0x05
 #define DL_UINT    0x06
 #define DL_FLOAT   0x07
-// #define DL_UFLOAT  0x08
 #define DL_DOUBLE  0x08
-// #define DL_UDOUBLE 0x0A
 
 typedef char            DLchar;
 typedef char*           DLchar_p;
@@ -39,9 +36,7 @@ typedef unsigned int    DLuint;
 typedef short           DLshort;
 typedef unsigned short  DLushort;
 typedef float           DLfloat;
-// typedef unsigned float  DLufloat;
 typedef double          DLdouble;
-// typedef unsigned double DLudouble;
 
 typedef unsigned char DLbool;
 typedef unsigned char DLobject;
@@ -194,6 +189,8 @@ void dlFreeShader (DLuint shader);
 DLuint dlShaderGetAttribLocation (DLuint shader, char* key);
 void dlShaderBindAttribLocation (DLuint shader, DLuint location, char* key);
 void dlShaderBindAttribPointer (DLuint shader, DLuint location, void* pointer);
+void dlShaderBindAttribType (DLuint shader, DLuint location, DLtype type);
+void dlShaderBindAttrib (DLuint shader, DLuint location, void* pointer, DLtype type, DLuint size);
 void dlShaderAttrsLoadBuffer (DLuint shader, DLuint buffer);
 void dlShaderAttrsLoadArray (DLuint shader, void* array, DLuint array_usize);
 
@@ -209,6 +206,8 @@ void dlFreePath (DLuint path);
 DLuint dlPathGetAttribLocation (DLuint path, char* key);
 void dlPathBindAttribLocation (DLuint path, DLuint location, char* key);
 void dlPathBindAttribPointer (DLuint path, DLuint location, void* pointer);
+void dlPathBindAttribType (DLuint path, DLuint location, DLtype type);
+void dlPathBindAttrib (DLuint path, DLuint location, void* pointer, DLtype type, DLuint size);
 void dlPathAttrsLoadBuffer (DLuint path, DLuint buffer);
 void dlPathAttrsLoadArray (DLuint path, void* array, DLuint array_usize);
 

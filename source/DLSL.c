@@ -57,12 +57,12 @@ void DLSL_vmLoadCode (struct DLSLVM* vm, double* code, DLuint code_size)
 
 void DLSL_vmRun (struct DLSLVM* vm)
 {
-	int ip, sp, addr;
-	double a, b;
+	DLint ip, sp, addr;
+	DLdouble a, b;
 
 	// This is for copying almost "undefined" data types
-	int v_int;
-	double v_double;
+	DLint v_int;
+	DLdouble v_double;
 
 	ip = -1;
 	sp = -1;
@@ -70,7 +70,8 @@ void DLSL_vmRun (struct DLSLVM* vm)
 	a = 0;
 	b = 0;
 
-	char running, opcode;
+	DLbool running;
+	DLSLopcode opcode;
 
 	running = 1;
 	opcode = 0;

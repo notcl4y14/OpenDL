@@ -522,6 +522,11 @@ void dlShaderBindAttribPointer (DLuint shader, DLuint location, void* pointer)
 	DL_bindAttribPointer(&DL_arrayShaderGet(shader)->attrs, location, pointer);
 }
 
+void dlShaderBindAttribType (DLuint shader, DLuint location, DLtype type)
+{
+	DL_bindAttribType(&DL_arrayShaderGet(shader)->attrs, location, type);
+}
+
 void dlShaderAttrsLoadBuffer (DLuint shader, DLuint buffer)
 {
 	DL_attrsLoadBuffer(&DL_arrayShaderGet(shader)->attrs, DL_arrayBufferGet(buffer));
@@ -590,6 +595,11 @@ void dlPathBindAttribLocation (DLuint path, DLuint location, char* key)
 void dlPathBindAttribPointer (DLuint path, DLuint location, void* pointer)
 {
 	DL_bindAttribPointer(&DL_arrayPathGet(path)->attrs, location, pointer);
+}
+
+void dlPathBindAttribType (DLuint path, DLuint location, DLtype type)
+{
+	DL_bindAttribType(&DL_arrayPathGet(path)->attrs, location, type);
 }
 
 void dlPathAttrsLoadBuffer (DLuint path, DLuint buffer)

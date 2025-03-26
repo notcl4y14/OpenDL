@@ -3,28 +3,6 @@
 #ifndef DLSL_h
 #define DLSL_h
 
-// enum DLSLOpCode
-// {
-// 	DLSL_OPCODE_NONE,
-
-// 	DLSL_OPCODE_JUMP,
-// 	DLSL_OPCODE_QUIT,
-
-// 	DLSL_OPCODE_PUSH,
-// 	DLSL_OPCODE_POP,
-
-// 	DLSL_OPCODE_IADD,
-// 	DLSL_OPCODE_ISUB,
-// 	DLSL_OPCODE_IMUL,
-// 	DLSL_OPCODE_IDIV,
-
-// 	DLSL_OPCODE_ALD,
-// 	DLSL_OPCODE_AST,
-
-// 	DLSL_OPCODE_BLD,
-// 	DLSL_OPCODE_BST,
-// };
-
 // DLSLopcode
 #define DLSL_NONE 0x00
 #define DLSL_JUMP 0x01
@@ -49,13 +27,6 @@ struct DLSLVM
 
 	DLuint* stack;
 	DLuint stack_size;
-
-	// DLubyte*   values_byte;
-	// DLushort*  values_short;
-	// DLuint*    values_int;
-	// DLufloat*  values_float;
-	// DLudouble* values_double;
-	// DLuint    values_size;
 
 	struct DLAttrs* attrs;
 	struct DLBuffer* buffer;
