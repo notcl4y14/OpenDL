@@ -51,12 +51,14 @@ struct DLPath
 /* DLBuffer
  */
 
-// void DLBuffer_init (DLBuffer* buffer, DLtype type, DLuint size);
 void DLBuffer_init (DLBuffer* buffer, DLtype type, DLuint csize, DLuint usize);
 void DLBuffer_free (DLBuffer* buffer);
 
 void DLBuffer_clear (DLBuffer* buffer);
 void DLBuffer_fill (DLBuffer* buffer, DLvoid_p source);
+
+void DLBuffer_clone (DLBuffer* buffer_dest, DLBuffer* buffer_source);
+void DLBuffer_copy (DLBuffer* buffer_dest, DLBuffer* buffer_source);
 
 void DLBuffer_setData (DLBuffer* buffer, DLvoid_p source, DLuint size);
 void DLBuffer_getData (DLBuffer* buffer, DLvoid_p dest);

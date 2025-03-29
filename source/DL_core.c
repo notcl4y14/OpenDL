@@ -4,15 +4,6 @@
 #include <DL_core.h>
 #include <DL_system.h>
 
-// void DLBuffer_init (DLBuffer* buffer, DLtype type, DLuint size)
-// {
-// 	buffer->data = calloc(size, sizeof(DLvoid_p));
-// 	buffer->type = type;
-// 	buffer->usize = DL_type_sizes[type];
-// 	buffer->csize = size;
-// 	buffer->size = buffer->usize * buffer->csize;
-// }
-
 /* ////////////////
  * DLBuffer
  * ////////////////
@@ -48,6 +39,23 @@ void DLBuffer_fill (DLBuffer* buffer, DLvoid_p source)
 		DLvoid_p dest_ptr = (DLchar_p)(buffer->data) + (data_loc * buffer->usize);
 		memcpy(dest_ptr, source, buffer->usize);
 	}
+}
+
+// 
+
+/* One of these might get deleted.
+ * They serve different purpose but
+ * do absolutely the same thing.
+ */
+void DLBuffer_clone (DLBuffer* buffer_dest, DLBuffer* buffer_source)
+{
+	*buffer_dest = *buffer_source;
+}
+
+void DLBuffer_copy (DLBuffer* buffer_dest, DLBuffer* buffer_source)
+{
+	// memcpy(buffer_dest->data, buffer_source->data, buffer_source->size);
+	*buffer_dest = *buffer_source;
 }
 
 // 

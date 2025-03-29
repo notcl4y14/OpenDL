@@ -52,6 +52,26 @@ void dlFillBuffer (DLuint buffer, DLvoid_p source)
 
 // 
 
+DLuint dlBufferClone (DLuint buffer)
+{
+	DLBuffer* buffer_source = &DL_buffers[buffer];
+	DLBuffer buffer_dest;
+	DLBuffer_clone(&buffer_dest, buffer_source);
+	DLuint location = DL_add_buffer(buffer_dest);
+	return location;
+}
+
+void dlBufferCopy (DLuint buffer_dest, DLuint buffer_source)
+{
+	DLBuffer* _buffer_dest = &DL_buffers[buffer_dest];
+
+	// When copying a buffer, we need to free previous data
+	DLBuffer_free(_buffer_dest);
+	DLBuffer_copy(_buffer_dest, &DL_buffers[buffer_source]);
+}
+
+// 
+
 void dlBufferData (DLuint buffer, DLvoid_p source, DLuint size)
 {
 	DLBuffer_setData(&DL_buffers[buffer], source, size);
@@ -106,7 +126,8 @@ void dlShaderBindAttrLocation (DLuint shader, DLuint location, DLchar_p id)
 
 DLuint dlShaderGetAttrLocation (DLuint shader, DLchar_p id)
 {
-	DLAttribMap_getAttribLocation(&DL_shaders[shader].attrmap, id);
+	DLuint location = DLAttribMap_getAttribLocation(&DL_shaders[shader].attrmap, id);
+	return location;
 }
 
 // 

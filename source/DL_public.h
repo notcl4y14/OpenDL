@@ -18,6 +18,9 @@ void   dlFreeBuffer (DLuint buffer);
 void dlClearBuffer (DLuint buffer);
 void dlFillBuffer (DLuint buffer, DLvoid_p source);
 
+DLuint dlBufferClone (DLuint buffer);
+void dlBufferCopy (DLuint buffer_dest, DLuint buffer_source);
+
 void dlBufferData (DLuint buffer, DLvoid_p source, DLuint size);
 void dlBufferGetData (DLuint buffer, DLvoid_p dest);
 
