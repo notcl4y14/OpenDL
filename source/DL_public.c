@@ -134,5 +134,5 @@ DLuint dlShaderGetAttrLocation (DLuint shader, DLchar_p id)
 
 void dlShaderApply (DLuint shader, DLuint buffer)
 {
-	DLShader_apply(&DL_shaders[shader], &DL_buffers[buffer]);
+	DLShader_apply(&DL_shaders[shader], &DL_buffers[buffer], &DL_DLSLRunner);
 }

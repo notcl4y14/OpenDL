@@ -103,6 +103,9 @@ void DLShader_init (DLShader* shader)
 	shader->code.data = NULL;
 	shader->code.size = 0;
 	shader->code.csize = 0;
+
+	shader->attr_loc_index = 0;
+	shader->attr_loc_value = 0;
 }
 
 void DLShader_free (DLShader* shader)
@@ -113,9 +116,26 @@ void DLShader_free (DLShader* shader)
 
 // 
 
-void DLShader_apply (DLShader* shader, DLBuffer* buffer)
+void DLShader_apply (DLShader* shader, DLBuffer* buffer, DLSLRunner* runner)
 {
-	return;
+	if (runner->stack != NULL)
+	{
+		DLSLRunner_free(runner);
+	}
+
+	DLSLRunner_initStack(runner, 64);
+	DLSLRunner_bindCode(runner, &shader->code);
+	DLSLRunner_bindAttrMap(runner, &shader->attrmap);
+
+	DLuint buffer_data_loc = -1;
+
+	while (++buffer_data_loc < buffer->csize)
+	{
+		shader->attrmap.attrs[shader->attr_loc_index].ptr = &buffer_data_loc;
+		shader->attrmap.attrs[shader->attr_loc_value].ptr = DLBuffer_getDataUnitP(buffer, buffer_data_loc);
+
+		DLSLRunner_run(runner);
+	}
 }
 
 /* ////////////////

@@ -62,6 +62,9 @@ struct DLShader
 {
 	DLAttribMap attrmap;
 	DLCode code;
+
+	DLuint attr_loc_index;
+	DLuint attr_loc_value;
 };
 
 struct DLPath
@@ -97,7 +100,7 @@ void     DLBuffer_getDataUnit (DLBuffer* buffer, DLvoid_p dest, DLuint location)
 void DLShader_init (DLShader* shader);
 void DLShader_free (DLShader* shader);
 
-void DLShader_apply (DLShader* shader, DLBuffer* buffer);
+void DLShader_apply (DLShader* shader, DLBuffer* buffer, DLSLRunner* runner);
 
 /* DLPath
  */
