@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include <DL_core.h>
-#include <DL_system.h>
+#include <DL_DLSL.h>
 
 /* ////////////////
  * DLBuffer
@@ -99,11 +99,16 @@ void DLShader_init (DLShader* shader)
 	shader->attrmap.attrs = NULL;
 	shader->attrmap.attrs_id = NULL;
 	shader->attrmap.capacity = 0;
+
+	shader->code.data = NULL;
+	shader->code.size = 0;
+	shader->code.csize = 0;
 }
 
 void DLShader_free (DLShader* shader)
 {
 	DLAttribMap_free(&shader->attrmap);
+	DLCode_free(&shader->code);
 }
 
 // 
@@ -123,18 +128,36 @@ void DLPath_init (DLPath* path)
 	path->attrmap.attrs = NULL;
 	path->attrmap.attrs_id = NULL;
 	path->attrmap.capacity = 0;
+
+	path->code.data = NULL;
+	path->code.size = 0;
+	path->code.csize = 0;
+
+	path->attr_loc_buffer = 0;
 }
 
 void DLPath_free (DLPath* path)
 {
 	DLAttribMap_free(&path->attrmap);
+	DLCode_free(&path->code);
 }
 
 // 
 
-void DLPath_apply (DLPath* path, DLBuffer* buffer)
+void DLPath_apply (DLPath* path, DLBuffer* buffer, DLSLRunner* runner)
 {
-	return;
+	path->attrmap.attrs[path->attr_loc_buffer].ptr = buffer->data;
+
+	if (runner->stack != NULL)
+	{
+		DLSLRunner_free(runner);
+	}
+
+	DLSLRunner_initStack(runner, 64);
+	DLSLRunner_bindCode(runner, &path->code);
+	DLSLRunner_bindAttrMap(runner, &path->attrmap);
+
+	DLSLRunner_run(runner);
 }
 
 /* ////////////////

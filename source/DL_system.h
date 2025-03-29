@@ -1,5 +1,6 @@
 #include <DL_defines.h>
 #include <DL_core.h>
+#include <DL_DLSL.h>
 
 #ifndef DL_SYSTEM_H
 #define DL_SYSTEM_H
@@ -20,6 +21,8 @@ extern DLuint    DL_paths_count;
 extern DLuint    DL_paths_capacity;
 
 extern DLuint*   DL_type_sizes;
+
+extern DLSLRunner DL_DLSLRunner;
 
 void DL_init ();
 void DL_free ();

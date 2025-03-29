@@ -20,6 +20,8 @@ DLuint    DL_paths_capacity;
 
 DLuint*   DL_type_sizes;
 
+DLSLRunner DL_DLSLRunner;
+
 // 
 
 void DL_init ()
@@ -74,6 +76,10 @@ void DL_init ()
 	DL_type_sizes[DL_INT] = 4;
 	DL_type_sizes[DL_FLOAT] = 4;
 	DL_type_sizes[DL_DOUBLE] = 8;
+
+	// DLSL Runner
+
+	DLSLRunner_init(&DL_DLSLRunner);
 }
 
 void DL_free ()
@@ -84,6 +90,10 @@ void DL_free ()
 	free(DL_buffers_available);
 	free(DL_shaders_available);
 	free(DL_paths_available);
+
+	free(DL_type_sizes);
+
+	DLSLRunner_free(&DL_DLSLRunner);
 }
 
 // 

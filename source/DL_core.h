@@ -3,6 +3,13 @@
 #ifndef DL_CORE_H
 #define DL_CORE_H
 
+/* "Includes" to prevent header recursion
+ */
+struct DLSLRunner;
+typedef struct DLSLRunner DLSLRunner;
+
+/* Struct Declarations
+ */
 struct DLBuffer;
 struct DLShader;
 struct DLPath;
@@ -10,6 +17,8 @@ struct DLAttribute;
 struct DLAttribMap;
 struct DLCode;
 
+/* Typedef Struct Declarations
+ */
 typedef struct DLBuffer DLBuffer;
 typedef struct DLShader DLShader;
 typedef struct DLPath DLPath;
@@ -17,6 +26,8 @@ typedef struct DLAttribute DLAttribute;
 typedef struct DLAttribMap DLAttribMap;
 typedef struct DLCode DLCode;
 
+/* Struct Definitions
+ */
 struct DLAttribute
 {
 	DLvoid_p ptr;
@@ -57,6 +68,8 @@ struct DLPath
 {
 	DLAttribMap attrmap;
 	DLCode code;
+
+	DLuint attr_loc_buffer;
 };
 
 /* DLBuffer
@@ -92,7 +105,7 @@ void DLShader_apply (DLShader* shader, DLBuffer* buffer);
 void DLPath_init (DLPath* path);
 void DLPath_free (DLPath* path);
 
-void DLPath_apply (DLPath* path, DLBuffer* buffer);
+void DLPath_apply (DLPath* path, DLBuffer* buffer, DLSLRunner* runner);
 
 /* DLAttribute
  */
