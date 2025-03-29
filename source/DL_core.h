@@ -8,12 +8,14 @@ struct DLShader;
 struct DLPath;
 struct DLAttribute;
 struct DLAttribMap;
+struct DLCode;
 
 typedef struct DLBuffer DLBuffer;
 typedef struct DLShader DLShader;
 typedef struct DLPath DLPath;
 typedef struct DLAttribute DLAttribute;
 typedef struct DLAttribMap DLAttribMap;
+typedef struct DLCode DLCode;
 
 struct DLAttribute
 {
@@ -29,6 +31,13 @@ struct DLAttribMap
 	DLuint capacity;
 };
 
+struct DLCode
+{
+	DLdouble* data;
+	DLuint size;
+	DLuint csize;
+};
+
 struct DLBuffer
 {
 	DLvoid_p data;
@@ -41,11 +50,13 @@ struct DLBuffer
 struct DLShader
 {
 	DLAttribMap attrmap;
+	DLCode code;
 };
 
 struct DLPath
 {
 	DLAttribMap attrmap;
+	DLCode code;
 };
 
 /* DLBuffer
@@ -100,5 +111,13 @@ void DLAttribMap_free (DLAttribMap* attrmap);
 
 void DLAttribMap_bindAttribID (DLAttribMap* attrmap, DLuint location, DLchar_p id);
 DLuint DLAttribMap_getAttribLocation (DLAttribMap* attrmap, DLchar_p id);
+
+/* DLCode
+ */
+
+void DLCode_init (DLCode* code);
+void DLCode_free (DLCode* code);
+
+void DLCode_load (DLCode* code, DLdouble* data, DLuint csize);
 
 #endif

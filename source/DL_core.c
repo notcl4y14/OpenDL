@@ -223,3 +223,33 @@ DLuint DLAttribMap_getAttribLocation (DLAttribMap* attrmap, DLchar_p id)
 
 	return -1;
 }
+
+/* ////////////////
+ * DLCode
+ * ////////////////
+ */
+
+void DLCode_init (DLCode* code)
+{
+	code->data = NULL;
+	code->csize = 0;
+	code->size = 0;
+}
+
+void DLCode_free (DLCode* code)
+{
+	free(code->data);
+}
+
+// 
+
+void DLCode_load (DLCode* code, DLdouble* data, DLuint csize)
+{
+	DLuint data_size = csize * sizeof(double);
+	
+	code->data = malloc(data_size);
+	code->size = data_size;
+	code->csize = csize;
+
+	memcpy(code->data, data, data_size);
+}
