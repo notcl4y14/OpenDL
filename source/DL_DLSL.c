@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include <DL_DLSL.h>
+#include <DL_util.h>
 
 void DLSLRunner_init (DLSLRunner* runner)
 {
@@ -49,11 +50,6 @@ void DLSLRunner_run (DLSLRunner* runner)
 	DLubyte opcode;
 	DLbool running;
 
-	// Value handlers
-	DLfloat v_float;
-	DLdouble v_double;
-	DLint v_int;
-
 	runner->ip = -1;
 	runner->sp = -1;
 
@@ -62,9 +58,6 @@ void DLSLRunner_run (DLSLRunner* runner)
 	addr = 0;
 	opcode = 0;
 	running = DL_TRUE;
-
-	v_double = 0;
-	v_int = 0;
 
 	while (running)
 	{
@@ -115,55 +108,22 @@ void DLSLRunner_run (DLSLRunner* runner)
 
 			case DLSL_ALD:
 				addr = runner->code->data[++runner->ip];
-
-				switch (runner->attrmap->attrs[addr].type)
-				{
-					case DL_BYTE:
-					case DL_SHORT:
-					case DL_INT:
-						v_int = 0;
-						DLAttribute_getValue(&runner->attrmap->attrs[addr], &v_int);
-						v_double = v_int;
-						break;
-
-					case DL_FLOAT:
-						v_float = 0;
-						DLAttribute_getValue(&runner->attrmap->attrs[addr], &v_float);
-						v_double = v_float;
-						break;
-						
-					case DL_DOUBLE:
-						v_double = 0;
-						DLAttribute_getValue(&runner->attrmap->attrs[addr], &v_double);
-						break;
-				}
-
-				runner->stack[++runner->sp] = v_double;
+				DL_util_copydt(
+					&runner->stack[++runner->sp],
+					DL_DOUBLE,
+					runner->attrmap->attrs[addr].ptr,
+					runner->attrmap->attrs[addr].type
+				);
 				break;
 
 			case DLSL_AST:
 				addr = runner->code->data[++runner->ip];
-
-				switch (runner->attrmap->attrs[addr].type)
-				{
-					case DL_BYTE:
-					case DL_SHORT:
-					case DL_INT:
-						v_int = runner->stack[runner->sp];
-						DLAttribute_setValue(&runner->attrmap->attrs[addr], &v_int);
-						break;
-
-					case DL_FLOAT:
-						v_float = runner->stack[runner->sp];
-						DLAttribute_setValue(&runner->attrmap->attrs[addr], &v_float);
-						break;
-
-					case DL_DOUBLE:
-						v_double = runner->stack[runner->sp];
-						DLAttribute_setValue(&runner->attrmap->attrs[addr], &v_double);
-						break;
-				}
-
+				DL_util_copydt(
+					runner->attrmap->attrs[addr].ptr,
+					runner->attrmap->attrs[addr].type,
+					&runner->stack[runner->sp],
+					DL_DOUBLE
+				);
 				runner->sp--;
 				break;
 		}
