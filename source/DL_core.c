@@ -158,7 +158,7 @@ void DLAttribute_free (DLAttribute* attr)
 
 void DLAttribute_setValue (DLAttribute* attr, DLvoid_p source)
 {
-	attr->ptr = source;
+	memcpy(attr->ptr, source, attr->size);
 }
 
 void DLAttribute_getValue (DLAttribute* attr, DLvoid_p dest)
@@ -246,7 +246,7 @@ void DLCode_free (DLCode* code)
 void DLCode_load (DLCode* code, DLdouble* data, DLuint csize)
 {
 	DLuint data_size = csize * sizeof(double);
-	
+
 	code->data = malloc(data_size);
 	code->size = data_size;
 	code->csize = csize;

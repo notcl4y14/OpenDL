@@ -13,6 +13,8 @@
 #define DLSL_ISUB 0x06
 #define DLSL_IMUL 0x07
 #define DLSL_IDIV 0x08
+#define DLSL_ALD  0x09
+#define DLSL_AST  0x0A
 
 struct DLSLRunner;
 
