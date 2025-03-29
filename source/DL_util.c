@@ -21,12 +21,12 @@ void DL_util_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype s
 	switch (source_t)
 	{
 		case DL_BYTE:
-			memcpy(&v_int, source_v, sizeof(DLbyte));
-			v_byte = v_int;
-			v_short = v_int;
-			v_int = v_int;
-			v_float = v_int;
-			v_double = v_int;
+			memcpy(&v_byte, source_v, sizeof(DLbyte));
+			v_byte = v_byte;
+			v_short = v_byte;
+			v_int = v_byte;
+			v_float = v_byte;
+			v_double = v_byte;
 			break;
 
 		case DL_SHORT:
@@ -69,11 +69,11 @@ void DL_util_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype s
 	switch (dest_t)
 	{
 		case DL_BYTE:
-			memcpy(dest_v, &v_byte, sizeof(DLint));
+			memcpy(dest_v, &v_byte, sizeof(DLbyte));
 			break;
 
 		case DL_SHORT:
-			memcpy(dest_v, &v_short, sizeof(DLint));
+			memcpy(dest_v, &v_short, sizeof(DLshort));
 			break;
 
 		case DL_INT:
