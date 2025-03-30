@@ -231,7 +231,6 @@ void DLShader_init (DLShader* shader, DLuint attrmap_capacity)
 {
 	shader->attrmap.attrs = calloc(attrmap_capacity, sizeof(DLAttrib));
 	shader->attrmap.attrs_id = calloc(attrmap_capacity, sizeof(DLchar_p));
-	shader->attrmap.attrs_values = calloc(attrmap_capacity, sizeof(DLvoid_p));
 	shader->attrmap.capacity = attrmap_capacity;
 
 	shader->code.data = NULL;
@@ -255,14 +254,14 @@ void DLShader_apply (DLShader* shader, DLSurface* surface)
 	DLSLRunner_bindCode(&DL_DLSLRunner, &shader->code);
 	DLSLRunner_bindAttrMap(&DL_DLSLRunner, &shader->attrmap);
 	
-	DLAttrMap* shader_attrmap = &shader->attrmap;
+	DLAttrib* shader_attrs = shader->attrmap.attrs;
 
 	DLuint surface_data_loc = -1;
 
 	while (++surface_data_loc < surface->csize)
 	{
-		DLAttrMap_bindAttrValue(shader_attrmap, shader->attr_loc_coord, &surface_data_loc);
-		DLAttrMap_bindAttrValue(shader_attrmap, shader->attr_loc_color, DLSurface_getPixelPI(surface, surface_data_loc, 0));
+		DLAttrib_bindValue(&shader_attrs[shader->attr_loc_coord], &surface_data_loc);
+		DLAttrib_bindValue(&shader_attrs[shader->attr_loc_color], DLSurface_getPixelPI(surface, surface_data_loc, 0));
 
 		DLSLRunner_run(&DL_DLSLRunner);
 	}
@@ -292,7 +291,6 @@ void DLPath_init (DLPath* path, DLuint attrmap_capacity)
 {
 	path->attrmap.attrs = calloc(attrmap_capacity, sizeof(DLAttrib));
 	path->attrmap.attrs_id = calloc(attrmap_capacity, sizeof(DLchar_p));
-	path->attrmap.attrs_values = calloc(attrmap_capacity, sizeof(DLvoid_p));
 	path->attrmap.capacity = attrmap_capacity;
 
 	path->code.data = NULL;
@@ -307,7 +305,7 @@ void DLPath_init (DLPath* path, DLuint attrmap_capacity)
 void DLPath_apply (DLPath* path, DLSurface* surface)
 {
 	// path->attrmap.attrs[path->attr_loc_buffer].ptr = buffer->data;
-	DLAttrMap_bindAttrValue(&path->attrmap, path->attr_loc_surface, &surface);
+	DLAttrib_bindValue(&path->attrmap.attrs[path->attr_loc_surface], &surface);
 
 	if (DL_DLSLRunner.stack != NULL)
 	{
@@ -326,14 +324,31 @@ void DLPath_apply (DLPath* path, DLSurface* surface)
  * ////////////////
  */
 
-void DLAttrib_init (DLAttrib* attr)
+void DLAttrib_init (DLAttrib* attr, DLuint size, DLuint stride)
 {
+	attr->value = calloc(size, 1);
 	attr->type = DL_NONE;
-	attr->size = 0;
+	attr->size = size;
+	attr->stride = stride;
 }
 
 void DLAttrib_free (DLAttrib* attr)
 {
+	free(attr->value);
+}
+
+// 
+
+void DLAttrib_reallocValue (DLAttrib* attr, DLuint size)
+{
+	// TODO: Change to realloc if needed
+	free(attr->value);
+	attr->value = calloc(size, 1);
+}
+
+void DLAttrib_bindValue (DLAttrib* attr, DLvoid_p source)
+{
+	memcpy(attr->value, source, attr->size);
 }
 
 /* ////////////////
@@ -345,7 +360,6 @@ void DLAttrMap_init (DLAttrMap* attrmap, DLuint capacity)
 {
 	attrmap->attrs = calloc(capacity, sizeof(DLAttrib));
 	attrmap->attrs_id = calloc(capacity, sizeof(DLchar_p));
-	attrmap->attrs_values = calloc(capacity, sizeof(DLvoid_p));
 	attrmap->capacity = capacity;
 }
 
@@ -371,7 +385,7 @@ void DLAttrMap_free (DLAttrMap* attrmap)
 
 	while (++loop_loc < attrmap->capacity)
 	{
-		DLvoid_p value = attrmap->attrs_values[loop_loc];
+		DLvoid_p value = attrmap->attrs[loop_loc].value;
 
 		if (value == NULL)
 		{
@@ -383,7 +397,6 @@ void DLAttrMap_free (DLAttrMap* attrmap)
 
 	free(attrmap->attrs);
 	free(attrmap->attrs_id);
-	free(attrmap->attrs_values);
 }
 
 // 
@@ -410,21 +423,6 @@ DLuint DLAttrMap_getAttrLocation (DLAttrMap* attrmap, DLchar_p id)
 	}
 
 	return -1;
-}
-
-// 
-
-void DLAttrMap_reallocAttrValue (DLAttrMap* attrmap, DLuint attr_loc, DLuint size)
-{
-	// TODO: Change to realloc if needed
-	free(attrmap->attrs_values[attr_loc]);
-	attrmap->attrs_values[attr_loc] = calloc(size, 1);
-}
-
-void DLAttrMap_bindAttrValue (DLAttrMap* attrmap, DLuint attr_loc, DLvoid_p source)
-{
-	DLvoid_p dest = attrmap->attrs_values[attr_loc];
-	memcpy(dest, source, attrmap->attrs[attr_loc].size);
 }
 
 /* ////////////////

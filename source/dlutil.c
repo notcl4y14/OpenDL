@@ -89,3 +89,17 @@ void DLutil_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype so
 			break;
 	}
 }
+
+void DLutil_copydts (DLvoid_p dest_v, DLtype dest_t, DLuint dest_sz, DLuint dest_st,
+                     DLvoid_p source_v, DLtype source_t, DLuint source_sz, DLuint source_st)
+{
+	DLuint loop_loc = -1;
+	DLuint loop_max = source_sz / sizeof(source_st);
+
+	while (++loop_loc < loop_max)
+	{
+		DLvoid_p dest_ptr = (DLchar_p)(dest_v) + (loop_loc * dest_st);
+		DLvoid_p source_ptr = (DLchar_p)(source_v) + (loop_loc * source_st);
+		DLutil_copydt(dest_ptr, dest_t, source_ptr, source_t);
+	}
+}

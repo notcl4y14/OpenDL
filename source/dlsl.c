@@ -114,21 +114,31 @@ void DLSLRunner_run (DLSLRunner* runner)
 
 			case DLSL_ALD:
 				addr = runner->code->data[++runner->ip];
-				DLutil_copydt(
+				DLutil_copydts(
 					&runner->stack[++runner->sp],
 					DL_DOUBLE,
-					runner->attrmap->attrs_values[addr],
-					runner->attrmap->attrs[addr].type
+					runner->attrmap->attrs[addr].stride * sizeof(DLdouble),
+					sizeof(DLdouble),
+
+					runner->attrmap->attrs[addr].value,
+					runner->attrmap->attrs[addr].type,
+					runner->attrmap->attrs[addr].size,
+					runner->attrmap->attrs[addr].stride
 				);
 				break;
 
 			case DLSL_AST:
 				addr = runner->code->data[++runner->ip];
-				DLutil_copydt(
-					runner->attrmap->attrs_values[addr],
+				DLutil_copydts(
+					runner->attrmap->attrs[addr].value,
 					runner->attrmap->attrs[addr].type,
+					runner->attrmap->attrs[addr].size,
+					runner->attrmap->attrs[addr].stride,
+
 					&runner->stack[runner->sp],
-					DL_DOUBLE
+					DL_DOUBLE,
+					runner->attrmap->attrs[addr].stride * sizeof(DLdouble),
+					sizeof(DLdouble)
 				);
 				runner->sp--;
 				break;

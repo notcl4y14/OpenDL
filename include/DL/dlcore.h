@@ -32,15 +32,16 @@ typedef struct DLCode DLCode;
  */
 struct DLAttrib
 {
+	DLvoid_p value;
 	DLtype type;
 	DLuint size;
+	DLuint stride;
 };
 
 struct DLAttrMap
 {
 	DLAttrib* attrs;
 	DLchar_p* attrs_id;
-	DLvoid_p* attrs_values;
 	DLuint capacity;
 };
 
@@ -181,11 +182,11 @@ void DLPath_apply (DLPath* path, DLSurface* surface);
 /* DLAttrib
  */
 
-void DLAttrib_init (DLAttrib* attr);
+void DLAttrib_init (DLAttrib* attr, DLuint size, DLuint stride);
 void DLAttrib_free (DLAttrib* attr);
 
-void DLAttrib_setPtrValue (DLAttrib* attr, DLvoid_p source);
-void DLAttrib_getPtrValue (DLAttrib* attr, DLvoid_p dest);
+void DLAttrib_reallocValue (DLAttrib* attr, DLuint size);
+void DLAttrib_bindValue (DLAttrib* attr, DLvoid_p source);
 
 /* DLAttrMap
  */
@@ -195,9 +196,6 @@ void DLAttrMap_free (DLAttrMap* attrmap);
 
 DLuint DLAttrMap_getAttrLocation (DLAttrMap* attrmap, DLchar_p id);
 void   DLAttrMap_bindAttrLocation (DLAttrMap* attrmap, DLuint location, DLchar_p id);
-
-void DLAttrMap_reallocAttrValue (DLAttrMap* attrmap, DLuint attr_loc, DLuint size);
-void DLAttrMap_bindAttrValue (DLAttrMap* attrmap, DLuint attr_loc, DLvoid_p source);
 
 /* DLCode
  */
