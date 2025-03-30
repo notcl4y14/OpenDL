@@ -1,26 +1,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <DL_system.h>
+#include <DL/dlsystem.h>
 
-DLBuffer* DL_buffers;
+dlBuffer* DL_buffers;
 DLbool*   DL_buffers_available;
 DLuint    DL_buffers_count;
 DLuint    DL_buffers_capacity;
 
-DLShader* DL_shaders;
+dlShader* DL_shaders;
 DLbool*   DL_shaders_available;
 DLuint    DL_shaders_count;
 DLuint    DL_shaders_capacity;
 
-DLPath*   DL_paths;
+dlPath*   DL_paths;
 DLbool*   DL_paths_available;
 DLuint    DL_paths_count;
 DLuint    DL_paths_capacity;
 
 DLuint*   DL_type_sizes;
 
-DLSLRunner DL_DLSLRunner;
+dlslRunner DL_dlslRunner;
 
 // 
 
@@ -38,9 +38,9 @@ void DL_init ()
 	DL_shaders_count = 0;
 	DL_paths_count = 0;
 
-	DL_buffers = malloc(DL_buffers_capacity * sizeof(DLBuffer));
-	DL_shaders = malloc(DL_shaders_capacity * sizeof(DLShader));
-	DL_paths = malloc(DL_paths_capacity * sizeof(DLPath));
+	DL_buffers = malloc(DL_buffers_capacity * sizeof(dlBuffer));
+	DL_shaders = malloc(DL_shaders_capacity * sizeof(dlShader));
+	DL_paths = malloc(DL_paths_capacity * sizeof(dlPath));
 
 	DL_buffers_available = malloc(DL_buffers_capacity * sizeof(DLbool));
 	DL_shaders_available = malloc(DL_shaders_capacity * sizeof(DLbool));
@@ -79,7 +79,7 @@ void DL_init ()
 
 	// DLSL Runner
 
-	DLSLRunner_init(&DL_DLSLRunner);
+	dlslRunner_init(&DL_dlslRunner);
 }
 
 void DL_free ()
@@ -93,12 +93,12 @@ void DL_free ()
 
 	free(DL_type_sizes);
 
-	DLSLRunner_free(&DL_DLSLRunner);
+	dlslRunner_free(&DL_dlslRunner);
 }
 
 // 
 
-DLuint DL_add_buffer (DLBuffer buffer)
+DLuint DL_add_buffer (dlBuffer buffer)
 {
 	DLuint loop_loc = -1;
 
@@ -122,7 +122,7 @@ DLuint DL_add_buffer (DLBuffer buffer)
 	return loop_loc;
 }
 
-DLuint DL_add_shader (DLShader shader)
+DLuint DL_add_shader (dlShader shader)
 {
 	DLuint loop_loc = -1;
 
@@ -146,7 +146,7 @@ DLuint DL_add_shader (DLShader shader)
 	return loop_loc;
 }
 
-DLuint DL_add_path (DLPath path)
+DLuint DL_add_path (dlPath path)
 {
 	DLuint loop_loc = -1;
 
@@ -179,7 +179,7 @@ void DL_realloc_buffers ()
 	last_loc = DL_buffers_capacity;
 	DL_buffers_capacity *= 2;
 
-	DL_buffers = realloc(DL_buffers, DL_buffers_capacity * sizeof(DLBuffer));
+	DL_buffers = realloc(DL_buffers, DL_buffers_capacity * sizeof(dlBuffer));
 	DL_buffers_available = realloc(DL_buffers_available, DL_buffers_capacity * sizeof(DLbool));
 
 	// Filling DL_buffers_available with DL_TRUE-s
@@ -198,7 +198,7 @@ void DL_realloc_shaders ()
 	last_loc = DL_shaders_capacity;
 	DL_shaders_capacity *= 2;
 
-	DL_shaders = realloc(DL_shaders, DL_shaders_capacity * sizeof(DLBuffer));
+	DL_shaders = realloc(DL_shaders, DL_shaders_capacity * sizeof(dlBuffer));
 	DL_shaders_available = realloc(DL_shaders_available, DL_shaders_capacity * sizeof(DLbool));
 
 	// Filling DL_shaders_available with DL_TRUE-s
@@ -217,7 +217,7 @@ void DL_realloc_paths ()
 	last_loc = DL_paths_capacity;
 	DL_paths_capacity *= 2;
 
-	DL_paths = realloc(DL_paths, DL_paths_capacity * sizeof(DLBuffer));
+	DL_paths = realloc(DL_paths, DL_paths_capacity * sizeof(dlBuffer));
 	DL_paths_available = realloc(DL_paths_available, DL_paths_capacity * sizeof(DLbool));
 
 	// Filling DL_paths_available with DL_TRUE-s

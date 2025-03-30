@@ -1,35 +1,35 @@
-#include <DL_defines.h>
-#include <DL_core.h>
-#include <DL_DLSL.h>
+#include <DL/dldefines.h>
+#include <DL/dlcore.h>
+#include <DL/dlsl.h>
 
 #ifndef DL_SYSTEM_H
 #define DL_SYSTEM_H
 
-extern DLBuffer* DL_buffers;
+extern dlBuffer* DL_buffers;
 extern DLbool*   DL_buffers_available;
 extern DLuint    DL_buffers_count;
 extern DLuint    DL_buffers_capacity;
 
-extern DLShader* DL_shaders;
+extern dlShader* DL_shaders;
 extern DLbool*   DL_shaders_available;
 extern DLuint    DL_shaders_count;
 extern DLuint    DL_shaders_capacity;
 
-extern DLPath*   DL_paths;
+extern dlPath*   DL_paths;
 extern DLbool*   DL_paths_available;
 extern DLuint    DL_paths_count;
 extern DLuint    DL_paths_capacity;
 
 extern DLuint*   DL_type_sizes;
 
-extern DLSLRunner DL_DLSLRunner;
+extern dlslRunner DL_dlslRunner;
 
 void DL_init ();
 void DL_free ();
 
-DLuint DL_add_buffer (DLBuffer buffer);
-DLuint DL_add_shader (DLShader shader);
-DLuint DL_add_path (DLPath path);
+DLuint DL_add_buffer (dlBuffer buffer);
+DLuint DL_add_shader (dlShader shader);
+DLuint DL_add_path (dlPath path);
 
 void DL_realloc_buffers ();
 void DL_realloc_shaders ();

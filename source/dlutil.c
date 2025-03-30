@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include <DL_util.h>
+#include <DL/dlutil.h>
 
 // If you're going to scroll down, remember:
 // do NOT be horrified by what you are going to see.
@@ -10,7 +10,7 @@
 
 // Which sounds less performant but I don't thinks casting is that heavy.
 
-void DL_util_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype source_t)
+void dlUtil_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype source_t)
 {
 	DLbyte v_byte;
 	DLshort v_short;

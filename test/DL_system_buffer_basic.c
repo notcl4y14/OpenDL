@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <DL_public.h>
+#include <dlpublic.h>
 
 void debug_buffer (DLuint buffer)
 {
-	#include <DL_core.h>
-	#include <DL_system.h>
+	#include <dlcore.h>
+	#include <dlsystem.h>
 
 	DLBuffer* _buffer = &DL_buffers[buffer];
 
