@@ -25,22 +25,22 @@
 
 /* Struct Declarations
  */
-struct dlslRunner;
-struct dlslCompiler;
-struct dlslToken;
+struct DLSLRunner;
+struct DLSLCompiler;
+struct DLSLToken;
 
 /* Typedef Struct Declarations
  */
-typedef struct dlslRunner dlslRunner;
-typedef struct dlslCompiler dlslCompiler;
-typedef struct dlslToken dlslToken;
+typedef struct DLSLRunner DLSLRunner;
+typedef struct DLSLCompiler DLSLCompiler;
+typedef struct DLSLToken DLSLToken;
 
 /* Struct Definitions
  */
-struct dlslRunner
+struct DLSLRunner
 {
-	dlCode* code;
-	dlAttrMap* attrmap;
+	DLCode* code;
+	DLAttrMap* attrmap;
 
 	DLdouble* stack;
 	DLuint stack_size;
@@ -49,7 +49,7 @@ struct dlslRunner
 	DLuint sp;
 };
 
-struct dlslCompiler
+struct DLSLCompiler
 {
 	DLchar_p code;
 	DLuint code_size;
@@ -59,40 +59,40 @@ struct dlslCompiler
 
 	DLuint location;
 
-	dlCode result;
+	DLCode result;
 	DLuint error;
 };
 
-struct dlslToken
+struct DLSLToken
 {
 	DLuint type;
 	DLchar value[24];
 };
 
-/* dlslRunner
+/* DLSLRunner
  */
 
-void dlslRunner_init (dlslRunner* runner);
-void dlslRunner_free (dlslRunner* runner);
+void DLSLRunner_init (DLSLRunner* runner);
+void DLSLRunner_free (DLSLRunner* runner);
 
-void dlslRunner_initStack (dlslRunner* runner, DLuint stack_size);
-void dlslRunner_bindCode (dlslRunner* runner, dlCode* code);
-void dlslRunner_bindAttrMap (dlslRunner* runner, dlAttrMap* attrmap);
+void DLSLRunner_initStack (DLSLRunner* runner, DLuint stack_size);
+void DLSLRunner_bindCode (DLSLRunner* runner, DLCode* code);
+void DLSLRunner_bindAttrMap (DLSLRunner* runner, DLAttrMap* attrmap);
 
-void dlslRunner_run (dlslRunner* runner);
+void DLSLRunner_run (DLSLRunner* runner);
 
-/* dlslCompiler
+/* DLSLCompiler
  */
 
-void dlslCompiler_init (dlslCompiler* compiler);
-void dlslCompiler_free (dlslCompiler* compiler);
+void DLSLCompiler_init (DLSLCompiler* compiler);
+void DLSLCompiler_free (DLSLCompiler* compiler);
 
-void dlslCompiler_loadCode (dlslCompiler* compiler, DLchar_p code, DLuint size);
-void dlslCompiler_compile (dlslCompiler* compiler);
+void DLSLCompiler_loadCode (DLSLCompiler* compiler, DLchar_p code, DLuint size);
+void DLSLCompiler_compile (DLSLCompiler* compiler);
 
-void dlslCompiler_lexer (dlslCompiler* compiler);
-void dlslCompiler_lexer_number (dlslCompiler* compiler);
-void dlslCompiler_lexer_ident (dlslCompiler* compiler);
-void dlslCompiler_lexer_symbol (dlslCompiler* compiler);
+void DLSLCompiler_lexer (DLSLCompiler* compiler);
+void DLSLCompiler_lexer_number (DLSLCompiler* compiler);
+void DLSLCompiler_lexer_ident (DLSLCompiler* compiler);
+void DLSLCompiler_lexer_symbol (DLSLCompiler* compiler);
 
 #endif

@@ -10,7 +10,7 @@
 
 // Which sounds less performant but I don't thinks casting is that heavy.
 
-void dlUtil_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype source_t)
+void DLutil_copydt (DLvoid_p dest_v, DLtype dest_t, DLvoid_p source_v, DLtype source_t)
 {
 	DLbyte v_byte;
 	DLshort v_short;

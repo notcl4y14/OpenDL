@@ -10,57 +10,60 @@ typedef struct dlslRunner dlslRunner;
 
 /* Struct Declarations
  */
-struct dlBuffer;
-struct dlSurface;
-struct dlShader;
-struct dlPath;
-struct dlAttrib;
-struct dlAttrMap;
-struct dlCode;
+struct DLBuffer;
+struct DLSurface;
+struct DLShader;
+struct DLPath;
+struct DLAttrib;
+struct DLAttrMap;
+struct DLCode;
 
 /* Typedef Struct Declarations
  */
-typedef struct dlBuffer dlBuffer;
-typedef struct dlSurface dlSurface;
-typedef struct dlShader dlShader;
-typedef struct dlPath dlPath;
-typedef struct dlAttrib dlAttrib;
-typedef struct dlAttrMap dlAttrMap;
-typedef struct dlCode dlCode;
+typedef struct DLBuffer DLBuffer;
+typedef struct DLSurface DLSurface;
+typedef struct DLShader DLShader;
+typedef struct DLPath DLPath;
+typedef struct DLAttrib DLAttrib;
+typedef struct DLAttrMap DLAttrMap;
+typedef struct DLCode DLCode;
 
 /* Struct Definitions
  */
-struct dlAttrib
+struct DLAttrib
 {
-	DLvoid_p ptr;
 	DLtype type;
 	DLuint size;
 };
 
-struct dlAttrMap
+struct DLAttrMap
 {
-	dlAttrib* attrs;
+	DLAttrib* attrs;
 	DLchar_p* attrs_id;
+	DLvoid_p* attrs_values;
 	DLuint capacity;
 };
 
-struct dlCode
+struct DLCode
 {
 	DLdouble* data;
 	DLuint size;
 	DLuint csize;
 };
 
-struct dlBuffer
+struct DLBuffer
 {
+	// Data
 	DLvoid_p data;
-	DLtype type;
 	DLuint size;
 	DLuint csize;
+
+	// Unit
+	DLtype utype;
 	DLuint usize;
 };
 
-struct dlSurface
+struct DLSurface
 {
 	// Data
 	DLvoid_p data;
@@ -77,103 +80,131 @@ struct dlSurface
 	DLuint height;
 };
 
-struct dlShader
+struct DLShader
 {
-	dlAttrMap attrmap;
-	dlCode code;
+	DLAttrMap attrmap;
+	DLCode code;
 
 	DLuint attr_loc_coord;
-	DLuint attr_loc_value;
+	DLuint attr_loc_color;
 };
 
-struct dlPath
+struct DLPath
 {
-	dlAttrMap attrmap;
-	dlCode code;
+	DLAttrMap attrmap;
+	DLCode code;
 
-	DLuint attr_loc_buffer;
+	DLuint attr_loc_surface;
 };
 
-/* dlBuffer
+/* DLBuffer
  */
 
-void dlBuffer_init (dlBuffer* buffer, DLtype type, DLuint csize, DLuint usize);
-void dlBuffer_free (dlBuffer* buffer);
+DLBuffer* DLBuffer_create ();
+void      DLBuffer_delete (DLBuffer* buffer);
 
-void dlBuffer_clone (dlBuffer* buffer_dest, dlBuffer* buffer_source);
-void dlBuffer_copy (dlBuffer* buffer_dest, dlBuffer* buffer_source);
+void DLBuffer_init (DLBuffer* buffer, DLtype type, DLuint csize, DLuint usize);
 
-void dlBuffer_clear (dlBuffer* buffer);
-void dlBuffer_fill (dlBuffer* buffer, DLvoid_p source);
+DLBuffer* DLBuffer_clone (DLBuffer* buffer);
+void      DLBuffer_copy (DLBuffer* buffer_dest, DLBuffer* buffer_source);
 
-void dlBuffer_setData (dlBuffer* buffer, DLvoid_p source, DLuint size);
-void dlBuffer_getData (dlBuffer* buffer, DLvoid_p dest);
+void DLBuffer_clear (DLBuffer* buffer);
+void DLBuffer_fill (DLBuffer* buffer, DLvoid_p source);
 
-DLvoid_p dlBuffer_getDataUnitP (dlBuffer* buffer, DLuint location);
-void     dlBuffer_getDataUnit (dlBuffer* buffer, DLvoid_p dest, DLuint location);
-void     dlBuffer_setDataUnit (dlBuffer* buffer, DLvoid_p source, DLuint location);
+void DLBuffer_getData (DLBuffer* buffer, DLvoid_p dest);
+void DLBuffer_loadData (DLBuffer* buffer, DLvoid_p source, DLuint size);
 
-/* dlSurface
+DLvoid_p DLBuffer_getDataUnitP (DLBuffer* buffer, DLuint location);
+void     DLBuffer_getDataUnit (DLBuffer* buffer, DLvoid_p dest, DLuint location);
+void     DLBuffer_setDataUnit (DLBuffer* buffer, DLvoid_p source, DLuint location);
+
+/* DLSurface
  */
 
-void dlSurface_init (dlSurface* surface, DLtype type, DLuint usize, DLuint ustride, DLuint width, DLuint height);
-void dlSurface_free (dlSurface* surface);
+DLSurface* DLSurface_create ();
+void       DLSurface_delete (DLSurface* surface);
 
-void dlSurface_clone (dlSurface* surface_dest, dlSurface* surface_source);
-void dlSurface_copy (dlSurface* surface_dest, dlSurface* surface_source);
+void DLSurface_init (DLSurface* surface,
+                     DLtype type,
+                     DLuint usize,
+                     DLuint ustride,
+                     DLuint width,
+                     DLuint height);
 
-void dlSurface_fill (dlSurface* surface, DLvoid_p source);
+DLSurface* DLSurface_clone (DLSurface* surface);
+void       DLSurface_copy (DLSurface* surface_dest, DLSurface* surface_source);
 
-void dlSurface_getData (dlSurface* surface, DLvoid_p dest);
-void dlSurface_setData (dlSurface* surface, DLvoid_p source);
+void DLSurface_fill (DLSurface* surface, DLvoid_p source);
 
-DLvoid_p dlSurface_getPixelPI (dlSurface* surface, DLuint index, DLuint offset);
-DLvoid_p dlSurface_getPixelP (dlSurface* surface, DLuint x, DLuint y, DLuint offset);
-void     dlSurface_getPixelI (dlSurface* surface, DLvoid_p dest, DLuint index, DLuint offset);
-void     dlSurface_getPixel (dlSurface* surface, DLvoid_p dest, DLuint x, DLuint y, DLuint offset);
-void dlSurface_setPixelI (dlSurface* surface, DLvoid_p source, DLuint index, DLuint offset);
-void dlSurface_setPixel (dlSurface* surface, DLvoid_p source, DLuint x, DLuint y, DLuint offset);
+void DLSurface_getData (DLSurface* surface, DLvoid_p dest);
+void DLSurface_loadData (DLSurface* surface, DLvoid_p source);
 
-/* dlShader
+DLvoid_p DLSurface_getPixelPI (DLSurface* surface, DLuint index, DLuint offset);
+DLvoid_p DLSurface_getPixelP (DLSurface* surface, DLuint x, DLuint y, DLuint offset);
+void     DLSurface_getPixelI (DLSurface* surface, DLvoid_p dest, DLuint index, DLuint offset);
+void     DLSurface_getPixel (DLSurface* surface, DLvoid_p dest, DLuint x, DLuint y, DLuint offset);
+void DLSurface_setPixelI (DLSurface* surface, DLvoid_p source, DLuint index, DLuint offset);
+void DLSurface_setPixel (DLSurface* surface, DLvoid_p source, DLuint x, DLuint y, DLuint offset);
+
+/* DLShader
  */
 
-void dlShader_init (dlShader* shader);
-void dlShader_free (dlShader* shader);
+DLShader* DLShader_create ();
+void      DLShader_delete (DLShader* shader);
 
-void dlShader_apply (dlShader* shader, dlBuffer* buffer, dlslRunner* runner);
+void DLShader_init (DLShader* shader, DLuint attrmap_capacity);
 
-/* dlPath
+void DLShader_loadCode (DLShader* shader, DLdouble* code, DLuint code_size);
+
+DLuint DLShader_getAttrLocation (DLShader* shader, DLchar_p id);
+void DLShader_bindAttrLocation (DLShader* shader, DLuint attr_loc, DLchar_p id);
+void DLShader_bindAttrParams (DLShader* shader, DLuint attr_loc, DLvoid_p attr_ptr, DLtype attr_type, DLuint attr_size);
+
+void DLShader_apply (DLShader* shader, DLSurface* surface);
+
+/* DLPath
  */
 
-void dlPath_init (dlPath* path);
-void dlPath_free (dlPath* path);
+DLPath* DLPath_create ();
+void    DLPath_delete (DLPath* path);
 
-void dlPath_apply (dlPath* path, dlBuffer* buffer, dlslRunner* runner);
+void DLPath_init (DLPath* path, DLuint attrmap_capacity);
 
-/* dlAttrib
+void DLPath_loadCode (DLPath* path, DLdouble* code, DLuint code_size);
+
+DLuint DLPath_getAttrLocation (DLPath* path, DLchar_p id);
+void DLPath_bindAttrLocation (DLPath* path, DLuint attr_loc, DLchar_p id);
+void DLPath_bindAttrParams (DLPath* path, DLuint attr_loc, DLvoid_p attr_ptr, DLtype attr_type, DLuint attr_size);
+
+void DLPath_apply (DLPath* path, DLSurface* surface);
+
+/* DLAttrib
  */
 
-void dlAttrib_init (dlAttrib* attr);
-void dlAttrib_free (dlAttrib* attr);
+void DLAttrib_init (DLAttrib* attr);
+void DLAttrib_free (DLAttrib* attr);
 
-void dlAttrib_setPtrValue (dlAttrib* attr, DLvoid_p source);
-void dlAttrib_getPtrValue (dlAttrib* attr, DLvoid_p dest);
+void DLAttrib_setPtrValue (DLAttrib* attr, DLvoid_p source);
+void DLAttrib_getPtrValue (DLAttrib* attr, DLvoid_p dest);
 
-/* dlAttrMap
+/* DLAttrMap
  */
 
-void dlAttrMap_init (dlAttrMap* attrmap, DLuint capacity);
-void dlAttrMap_free (dlAttrMap* attrmap);
+void DLAttrMap_init (DLAttrMap* attrmap, DLuint capacity);
+void DLAttrMap_free (DLAttrMap* attrmap);
 
-void dlAttrMap_bindAttribID (dlAttrMap* attrmap, DLuint location, DLchar_p id);
-DLuint dlAttrMap_getAttribLocation (dlAttrMap* attrmap, DLchar_p id);
+DLuint DLAttrMap_getAttrLocation (DLAttrMap* attrmap, DLchar_p id);
+void   DLAttrMap_bindAttrLocation (DLAttrMap* attrmap, DLuint location, DLchar_p id);
 
-/* dlCode
+void DLAttrMap_reallocAttrValue (DLAttrMap* attrmap, DLuint attr_loc, DLuint size);
+void DLAttrMap_bindAttrValue (DLAttrMap* attrmap, DLuint attr_loc, DLvoid_p source);
+
+/* DLCode
  */
 
-void dlCode_init (dlCode* code);
-void dlCode_free (dlCode* code);
+void DLCode_init (DLCode* code);
+void DLCode_free (DLCode* code);
 
-void dlCode_load (dlCode* code, DLdouble* data, DLuint csize);
+void DLCode_load (DLCode* code, DLdouble* data, DLuint csize);
 
 #endif

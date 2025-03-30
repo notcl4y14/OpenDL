@@ -7,10 +7,27 @@ flags_warnings = -Wall -Wextra --pedantic
 # No Warning Flags
 # flags_warnings = -w
 
-build:
-	gcc -c source/DL_system.c -Isource -o ${output_dir}/_DL_system.o ${flags_warnings}
-	gcc -c source/DL_public.c -Isource -o ${output_dir}/_DL_public.o ${flags_warnings}
-	gcc -c source/DL_core.c -Isource -o ${output_dir}/_DL_core.o ${flags_warnings}
-	gcc -c source/DL_DLSL.c -Isource -o ${output_dir}/_DL_DLSL.o ${flags_warnings}
-	gcc -c source/DL_util.c -Isource -o ${output_dir}/_DL_util.o ${flags_warnings}
-	gcc -r bin/_DL_system.o bin/_DL_public.o bin/_DL_core.o bin/_DL_DLSL.o bin/_DL_util.o -Isource -o ${output_dir}/DL.o
+all: build-o
+
+setup:
+	@echo Creating required directories...
+	@mkdir bin
+
+build-o:
+	@echo Building .o files...
+	@echo ================
+	gcc -c source/dlcore.c -Iinclude -o ${output_dir}/dlcore.o ${flags_warnings}
+	gcc -c source/dlsystem.c -Iinclude -o ${output_dir}/dlsystem.o ${flags_warnings}
+	gcc -c source/dlsl.c -Iinclude -o ${output_dir}/dlsl.o ${flags_warnings}
+	gcc -c source/dlutil.c -Iinclude -o ${output_dir}/dlutil.o ${flags_warnings}
+	gcc -r ${output_dir}/dlcore.o ${output_dir}/dlsystem.o ${output_dir}/dlsl.o ${output_dir}/dlutil.o -Iinclude -o ${output_dir}/DL.o
+
+build-dll:
+	@echo Building .dll file...
+	@echo ================
+	gcc -shared ${output_dir}/DL.o -o ${output_dir}/DL.dll
+
+build-so:
+	@echo Building .so file...
+	@echo ================
+	gcc -shared ${output_dir}/DL.o -o ${output_dir}/DL.so

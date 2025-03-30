@@ -5,11 +5,11 @@
 #include <DL/dlutil.h>
 
 /* ////////////////
- * dlslRunner
+ * DLSLRunner
  * ////////////////
  */
 
-void dlslRunner_init (dlslRunner* runner)
+void DLSLRunner_init (DLSLRunner* runner)
 {
 	runner->code = NULL;
 	runner->attrmap = NULL;
@@ -19,7 +19,7 @@ void dlslRunner_init (dlslRunner* runner)
 	runner->sp = 0;
 }
 
-void dlslRunner_free (dlslRunner* runner)
+void DLSLRunner_free (DLSLRunner* runner)
 {
 	free(runner->stack);
 
@@ -30,26 +30,26 @@ void dlslRunner_free (dlslRunner* runner)
 
 // 
 
-void dlslRunner_initStack (dlslRunner* runner, DLuint stack_size)
+void DLSLRunner_initStack (DLSLRunner* runner, DLuint stack_size)
 {
 	// TODO: Change `calloc` to `malloc` when needed
 	runner->stack = calloc(stack_size, sizeof(double));
 	runner->stack_size = stack_size;
 }
 
-void dlslRunner_bindCode (dlslRunner* runner, dlCode* code)
+void DLSLRunner_bindCode (DLSLRunner* runner, DLCode* code)
 {
 	runner->code = code;
 }
 
-void dlslRunner_bindAttrMap (dlslRunner* runner, dlAttrMap* attrmap)
+void DLSLRunner_bindAttrMap (DLSLRunner* runner, DLAttrMap* attrmap)
 {
 	runner->attrmap = attrmap;
 }
 
 // 
 
-void dlslRunner_run (dlslRunner* runner)
+void DLSLRunner_run (DLSLRunner* runner)
 {
 	DLdouble a, b;
 	DLuint addr;
@@ -114,18 +114,18 @@ void dlslRunner_run (dlslRunner* runner)
 
 			case DLSL_ALD:
 				addr = runner->code->data[++runner->ip];
-				dlUtil_copydt(
+				DLutil_copydt(
 					&runner->stack[++runner->sp],
 					DL_DOUBLE,
-					runner->attrmap->attrs[addr].ptr,
+					runner->attrmap->attrs_values[addr],
 					runner->attrmap->attrs[addr].type
 				);
 				break;
 
 			case DLSL_AST:
 				addr = runner->code->data[++runner->ip];
-				dlUtil_copydt(
-					runner->attrmap->attrs[addr].ptr,
+				DLutil_copydt(
+					runner->attrmap->attrs_values[addr],
 					runner->attrmap->attrs[addr].type,
 					&runner->stack[runner->sp],
 					DL_DOUBLE
@@ -137,11 +137,11 @@ void dlslRunner_run (dlslRunner* runner)
 }
 
 /* ////////////////
- * dlslCompiler
+ * DLSLCompiler
  * ////////////////
  */
 
-// void dlslCompiler_init (dlslCompiler* compiler)
+// void DLSLCompiler_init (DLSLCompiler* compiler)
 // {
 // 	compiler->code = NULL;
 // 	compiler->code_size = 0;
@@ -156,7 +156,7 @@ void dlslRunner_run (dlslRunner* runner)
 // 	compiler->result.size = 0;
 // }
 
-// void dlslCompiler_free (dlslCompiler* compiler)
+// void DLSLCompiler_free (DLSLCompiler* compiler)
 // {
 // 	free(compiler->code);
 // 	free(compiler->tokens);
@@ -165,7 +165,7 @@ void dlslRunner_run (dlslRunner* runner)
 
 // // 
 
-// void dlslCompiler_loadCode (dlslCompiler* compiler, DLchar_p code, DLuint size)
+// void DLSLCompiler_loadCode (DLSLCompiler* compiler, DLchar_p code, DLuint size)
 // {
 // 	compiler->code = malloc(size);
 // 	compiler->code_size = 0;
@@ -173,14 +173,14 @@ void dlslRunner_run (dlslRunner* runner)
 // 	memcpy(compiler->code, code, size);
 // }
 
-// void dlslCompiler_compile (dlslCompiler* compiler)
+// void DLSLCompiler_compile (DLSLCompiler* compiler)
 // {
-// 	dlslCompiler_lexer(compiler);
+// 	DLSLCompiler_lexer(compiler);
 // }
 
 // // 
 
-// void dlslCompiler_lexer (dlslCompiler* compiler)
+// void DLSLCompiler_lexer (DLSLCompiler* compiler)
 // {
 // 	compiler->location = -1;
 
@@ -190,24 +190,24 @@ void dlslRunner_run (dlslRunner* runner)
 
 // 		if (_char >= '0' && _char <= '9')
 // 		{
-// 			dlslCompiler_token_number(compiler);
+// 			DLSLCompiler_token_number(compiler);
 // 		}
 // 		else if (_char >= 'a' && _char <= 'z')
 // 		{
-// 			dlslCompiler_token_ident(compiler);
+// 			DLSLCompiler_token_ident(compiler);
 // 		}
 // 		else if (_char >= 'A' && _char <= 'Z')
 // 		{
-// 			dlslCompiler_token_ident(compiler);
+// 			DLSLCompiler_token_ident(compiler);
 // 		}
 // 		else if (_char >= '!' && _char <= '/')
 // 		{
-// 			dlslCompiler_token_symbol(compiler);
+// 			DLSLCompiler_token_symbol(compiler);
 // 		}
 // 	}
 // }
 
-// void dlslCompiler_token_number (dlslCompiler* compiler)
+// void DLSLCompiler_token_number (DLSLCompiler* compiler)
 // {
 // 	DLchar_p num_str = calloc(8, sizeof(DLchar));
 // 	DLuint num_str_count = 0;

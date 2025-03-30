@@ -2,6 +2,6 @@
 #define DL_H
 
 #include <DL/dldefines.h>
-#include <DL/dlpublic.h>
+#include <DL/dlcore.h>
 
 #endif
