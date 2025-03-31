@@ -158,8 +158,8 @@ void DLShader_init (DLShader* shader, DLuint attrmap_capacity);
 void DLShader_loadCode (DLShader* shader, DLdouble* code, DLuint code_size);
 
 DLuint DLShader_getAttrLocation (DLShader* shader, DLchar_p id);
-void DLShader_bindAttrLocation (DLShader* shader, DLuint attr_loc, DLchar_p id);
-void DLShader_bindAttrParams (DLShader* shader, DLuint attr_loc, DLvoid_p attr_ptr, DLtype attr_type, DLuint attr_size);
+void DLShader_bindAttrLocation (DLShader* shader, DLuint loc, DLchar_p id);
+void DLShader_bindAttrParams (DLShader* shader, DLuint loc, DLtype type, DLuint size, DLuint stride);
 
 void DLShader_apply (DLShader* shader, DLSurface* surface);
 
@@ -174,8 +174,8 @@ void DLPath_init (DLPath* path, DLuint attrmap_capacity);
 void DLPath_loadCode (DLPath* path, DLdouble* code, DLuint code_size);
 
 DLuint DLPath_getAttrLocation (DLPath* path, DLchar_p id);
-void DLPath_bindAttrLocation (DLPath* path, DLuint attr_loc, DLchar_p id);
-void DLPath_bindAttrParams (DLPath* path, DLuint attr_loc, DLvoid_p attr_ptr, DLtype attr_type, DLuint attr_size);
+void DLPath_bindAttrLocation (DLPath* path, DLuint loc, DLchar_p id);
+void DLPath_bindAttrParams (DLPath* path, DLuint loc, DLtype type, DLuint size, DLuint stride);
 
 void DLPath_apply (DLPath* path, DLSurface* surface);
 

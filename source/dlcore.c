@@ -243,6 +243,33 @@ void DLShader_init (DLShader* shader, DLuint attrmap_capacity)
 
 // 
 
+DLuint DLShader_getAttrLocation (DLShader* shader, DLchar_p id)
+{
+	return DLAttrMap_getAttrLocation(&shader->attrmap, id);
+}
+
+void DLShader_bindAttrLocation (DLShader* shader, DLuint attr_loc, DLchar_p attr_id)
+{
+	DLAttrMap_bindAttrLocation(&shader->attrmap, attr_loc, attr_id);
+}
+
+void DLShader_bindAttrParams (DLShader* shader, DLuint attr_loc, DLtype attr_type, DLuint attr_size, DLuint attr_stride)
+{
+	DLAttrib* attr = &shader->attrmap.attrs[attr_loc];
+
+	if (attr->value != NULL)
+	{
+		free(attr->value);
+	}
+
+	attr->value = calloc(attr_size, 1);
+	attr->type = attr_type;
+	attr->size = attr_size;
+	attr->stride = attr_stride;
+}
+
+// 
+
 void DLShader_apply (DLShader* shader, DLSurface* surface)
 {
 	if (DL_DLSLRunner.stack != NULL)
@@ -298,6 +325,33 @@ void DLPath_init (DLPath* path, DLuint attrmap_capacity)
 	path->code.csize = 0;
 
 	path->attr_loc_surface = 0;
+}
+
+// 
+
+DLuint DLPath_getAttrLocation (DLPath* path, DLchar_p id)
+{
+	return DLAttrMap_getAttrLocation(&path->attrmap, id);
+}
+
+void DLPath_bindAttrLocation (DLPath* path, DLuint attr_loc, DLchar_p attr_id)
+{
+	DLAttrMap_bindAttrLocation(&path->attrmap, attr_loc, attr_id);
+}
+
+void DLPath_bindAttrParams (DLPath* path, DLuint attr_loc, DLtype attr_type, DLuint attr_size, DLuint attr_stride)
+{
+	DLAttrib* attr = &path->attrmap.attrs[attr_loc];
+
+	if (attr->value != NULL)
+	{
+		free(attr->value);
+	}
+
+	attr->value = calloc(attr_size, 1);
+	attr->type = attr_type;
+	attr->size = attr_size;
+	attr->stride = attr_stride;
 }
 
 // 
