@@ -27,7 +27,7 @@ void DLBuffer_delete (DLBuffer* buffer)
 void DLBuffer_init (DLBuffer* buffer, DLtype type, DLuint csize, DLuint usize)
 {
 	buffer->data = calloc(csize, usize);
-	buffer->size = csize * usize;
+	buffer->ssize = csize * usize;
 	buffer->csize = csize;
 
 	buffer->utype = type;
@@ -52,7 +52,7 @@ void DLBuffer_copy (DLBuffer* buffer_dest, DLBuffer* buffer_source)
 
 void DLBuffer_clear (DLBuffer* buffer)
 {
-	memset(buffer->data, 0, buffer->size);
+	memset(buffer->data, 0, buffer->ssize);
 }
 
 void DLBuffer_fill (DLBuffer* buffer, DLvoid_p source)
@@ -70,7 +70,7 @@ void DLBuffer_fill (DLBuffer* buffer, DLvoid_p source)
 
 void DLBuffer_getData (DLBuffer* buffer, DLvoid_p dest)
 {
-	memcpy(dest, buffer->data, buffer->size);
+	memcpy(dest, buffer->data, buffer->ssize);
 }
 
 void DLBuffer_loadData (DLBuffer* buffer, DLvoid_p source, DLuint size)
@@ -122,12 +122,13 @@ void DLSurface_init (DLSurface* surface, DLtype type, DLuint usize, DLuint ustri
 	DLuint csize = width * height;
 
 	surface->data = calloc(csize * ustride, usize);
-	surface->size = csize * ustride * usize;
+	surface->ssize = csize * usize;
 	surface->csize = csize;
 
 	surface->utype = type;
 	surface->usize = usize;
-	surface->ustride = ustride;
+	surface->ubstride = usize / ustride;
+	surface->usstride = ustride;
 
 	surface->width = width;
 	surface->height = height;
@@ -153,11 +154,11 @@ void DLSurface_fill (DLSurface* surface, DLvoid_p source)
 {
 	DLuint loop_loc = -1;
 
-	while (++loop_loc < surface->size)
+	while (++loop_loc < surface->ssize)
 	{
 		// ptr_source: base + (index % stride) * unit_size
 		DLvoid_p ptr_dest = DLSurface_getPixelPI(surface, loop_loc, 0);
-		DLvoid_p ptr_source = (DLchar_p)(source) + ( (loop_loc % surface->ustride) * surface->usize);
+		DLvoid_p ptr_source = (DLchar_p)(source) + ( (loop_loc % surface->ubstride) * surface->usize);
 
 		memcpy(ptr_dest, ptr_source, surface->usize);
 	}
@@ -167,24 +168,24 @@ void DLSurface_fill (DLSurface* surface, DLvoid_p source)
 
 void DLSurface_getData (DLSurface* surface, DLvoid_p dest)
 {
-	memcpy(dest, surface->data, surface->size);
+	memcpy(dest, surface->data, surface->ssize);
 }
 
 void DLSurface_loadData (DLSurface* surface, DLvoid_p source)
 {
-	memcpy(surface->data, source, surface->size);
+	memcpy(surface->data, source, surface->ssize);
 }
 
 // 
 
 DLvoid_p DLSurface_getPixelPI (DLSurface* surface, DLuint index, DLuint offset)
 {
-	return (DLchar_p)(surface->data) + ((index + offset) * surface->ustride * surface->usize);
+	return (DLchar_p)(surface->data) + ((index + offset) * surface->ubstride * surface->usize);
 }
 
 DLvoid_p DLSurface_getPixelP (DLSurface* surface, DLuint x, DLuint y, DLuint offset)
 {
-	return (DLchar_p)(surface->data) + ((y * surface->width + x + offset) * surface->ustride * surface->usize);
+	return (DLchar_p)(surface->data) + ((y * surface->width + x + offset) * surface->ubstride * surface->usize);
 }
 
 void DLSurface_getPixelI (DLSurface* surface, DLvoid_p dest, DLuint index, DLuint offset)
@@ -234,11 +235,18 @@ void DLShader_init (DLShader* shader, DLuint attrmap_capacity)
 	shader->attrmap.capacity = attrmap_capacity;
 
 	shader->code.data = NULL;
-	shader->code.size = 0;
+	shader->code.ssize = 0;
 	shader->code.csize = 0;
 
 	shader->attr_loc_coord = 0;
 	shader->attr_loc_color = 0;
+}
+
+// 
+
+void DLShader_loadCode (DLShader* shader, DLdouble* code, DLuint code_size)
+{
+	DLCode_load(&shader->code, code, code_size);
 }
 
 // 
@@ -253,19 +261,20 @@ void DLShader_bindAttrLocation (DLShader* shader, DLuint attr_loc, DLchar_p attr
 	DLAttrMap_bindAttrLocation(&shader->attrmap, attr_loc, attr_id);
 }
 
-void DLShader_bindAttrParams (DLShader* shader, DLuint attr_loc, DLtype attr_type, DLuint attr_size, DLuint attr_stride)
+void DLShader_bindAttrParams (DLShader* shader, DLuint loc, DLtype type, DLuint size, DLuint stride)
 {
-	DLAttrib* attr = &shader->attrmap.attrs[attr_loc];
+	DLAttrib* attr = &shader->attrmap.attrs[loc];
 
 	if (attr->value != NULL)
 	{
 		free(attr->value);
 	}
 
-	attr->value = calloc(attr_size, 1);
-	attr->type = attr_type;
-	attr->size = attr_size;
-	attr->stride = attr_stride;
+	attr->value = calloc(size, 1);
+	attr->vtype = type;
+	attr->vsize = size;
+	attr->vbstride = size / stride;
+	attr->vsstride = stride;
 }
 
 // 
@@ -290,7 +299,9 @@ void DLShader_apply (DLShader* shader, DLSurface* surface)
 		DLAttrib_bindValue(&shader_attrs[shader->attr_loc_coord], &surface_data_loc);
 		DLAttrib_bindValue(&shader_attrs[shader->attr_loc_color], DLSurface_getPixelPI(surface, surface_data_loc, 0));
 
+		// printf("%d\n", ((DLubyte*)(surface->data))[surface_data_loc]);
 		DLSLRunner_run(&DL_DLSLRunner);
+		// printf("%d\n", ((DLubyte*)(surface->data))[surface_data_loc]);
 	}
 }
 
@@ -321,7 +332,7 @@ void DLPath_init (DLPath* path, DLuint attrmap_capacity)
 	path->attrmap.capacity = attrmap_capacity;
 
 	path->code.data = NULL;
-	path->code.size = 0;
+	path->code.ssize = 0;
 	path->code.csize = 0;
 
 	path->attr_loc_surface = 0;
@@ -339,19 +350,20 @@ void DLPath_bindAttrLocation (DLPath* path, DLuint attr_loc, DLchar_p attr_id)
 	DLAttrMap_bindAttrLocation(&path->attrmap, attr_loc, attr_id);
 }
 
-void DLPath_bindAttrParams (DLPath* path, DLuint attr_loc, DLtype attr_type, DLuint attr_size, DLuint attr_stride)
+void DLPath_bindAttrParams (DLPath* path, DLuint loc, DLtype type, DLuint size, DLuint stride)
 {
-	DLAttrib* attr = &path->attrmap.attrs[attr_loc];
+	DLAttrib* attr = &path->attrmap.attrs[loc];
 
 	if (attr->value != NULL)
 	{
 		free(attr->value);
 	}
 
-	attr->value = calloc(attr_size, 1);
-	attr->type = attr_type;
-	attr->size = attr_size;
-	attr->stride = attr_stride;
+	attr->value = calloc(size, 1);
+	attr->vtype = type;
+	attr->vsize = size;
+	attr->vbstride = size / stride;
+	attr->vsstride = stride;
 }
 
 // 
@@ -381,9 +393,10 @@ void DLPath_apply (DLPath* path, DLSurface* surface)
 void DLAttrib_init (DLAttrib* attr, DLuint size, DLuint stride)
 {
 	attr->value = calloc(size, 1);
-	attr->type = DL_NONE;
-	attr->size = size;
-	attr->stride = stride;
+	attr->vtype = DL_NONE;
+	attr->vsize = size;
+	attr->vbstride = size / stride;
+	attr->vsstride = stride;
 }
 
 void DLAttrib_free (DLAttrib* attr)
@@ -402,7 +415,7 @@ void DLAttrib_reallocValue (DLAttrib* attr, DLuint size)
 
 void DLAttrib_bindValue (DLAttrib* attr, DLvoid_p source)
 {
-	memcpy(attr->value, source, attr->size);
+	memcpy(attr->value, source, attr->vsize);
 }
 
 /* ////////////////
@@ -487,8 +500,8 @@ DLuint DLAttrMap_getAttrLocation (DLAttrMap* attrmap, DLchar_p id)
 void DLCode_init (DLCode* code)
 {
 	code->data = NULL;
+	code->ssize = 0;
 	code->csize = 0;
-	code->size = 0;
 }
 
 void DLCode_free (DLCode* code)
@@ -503,7 +516,7 @@ void DLCode_load (DLCode* code, DLdouble* data, DLuint size)
 	DLuint csize = size / sizeof(DLdouble);
 
 	code->data = malloc(size);
-	code->size = size;
+	code->ssize = size;
 	code->csize = csize;
 
 	memcpy(code->data, data, size);

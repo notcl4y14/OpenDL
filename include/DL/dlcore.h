@@ -3,10 +3,22 @@
 #ifndef DL_CORE_H
 #define DL_CORE_H
 
-/* "Includes" to prevent header recursion
+/* Struct member name meanings.
+ * OpenDL code has a lot of struct members that might be confusing like
+ * stride of DLAttribute is not the same as stride of DLSurface. Struct member
+ * name prefixes fix that problem (and creates a new one like what even is usstride or
+ * duc(name)). The prefixes can be combined to, for example, ubstride - a base size of unit stride.
+ * ================
+ * Property values
+ * s(name) - an actual size of property (used for specifying stride value size)
+ * b(name) - a base size of property (opposite of `s`)
+ * c(name) - a count of property (basically the same as `b`)
+ * Property types
+ * (name)  - whatever would that be
+ * d(name) - a data property
+ * u(name) - a unit property (utype, usize, ustride)
+ * v(name) - a value property (vtype, vsize, vstride)
  */
-struct dlslRunner;
-typedef struct dlslRunner dlslRunner;
 
 /* Struct Declarations
  */
@@ -32,10 +44,12 @@ typedef struct DLCode DLCode;
  */
 struct DLAttrib
 {
+	// Value
 	DLvoid_p value;
-	DLtype type;
-	DLuint size;
-	DLuint stride;
+	DLtype   vtype;
+	DLuint   vsize;
+	DLuint   vbstride;
+	DLuint   vsstride;
 };
 
 struct DLAttrMap
@@ -48,7 +62,7 @@ struct DLAttrMap
 struct DLCode
 {
 	DLdouble* data;
-	DLuint size;
+	DLuint ssize;
 	DLuint csize;
 };
 
@@ -56,7 +70,7 @@ struct DLBuffer
 {
 	// Data
 	DLvoid_p data;
-	DLuint size;
+	DLuint ssize;
 	DLuint csize;
 
 	// Unit
@@ -68,13 +82,14 @@ struct DLSurface
 {
 	// Data
 	DLvoid_p data;
-	DLuint size;
+	DLuint ssize;
 	DLuint csize;
 
 	// Unit
 	DLtype utype;
 	DLuint usize;
-	DLuint ustride;
+	DLuint ubstride;
+	DLuint usstride;
 
 	// Surface
 	DLuint width;

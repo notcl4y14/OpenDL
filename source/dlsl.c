@@ -117,27 +117,28 @@ void DLSLRunner_run (DLSLRunner* runner)
 				DLutil_copydts(
 					&runner->stack[++runner->sp],
 					DL_DOUBLE,
-					runner->attrmap->attrs[addr].stride * sizeof(DLdouble),
+					runner->attrmap->attrs[addr].vbstride * sizeof(DLdouble),
 					sizeof(DLdouble),
 
 					runner->attrmap->attrs[addr].value,
-					runner->attrmap->attrs[addr].type,
-					runner->attrmap->attrs[addr].size,
-					runner->attrmap->attrs[addr].stride
+					runner->attrmap->attrs[addr].vtype,
+					runner->attrmap->attrs[addr].vsize,
+					runner->attrmap->attrs[addr].vsstride
 				);
 				break;
 
 			case DLSL_AST:
 				addr = runner->code->data[++runner->ip];
+				// printf("stack value: %d\n", runner->stack[runner->sp]);
 				DLutil_copydts(
 					runner->attrmap->attrs[addr].value,
-					runner->attrmap->attrs[addr].type,
-					runner->attrmap->attrs[addr].size,
-					runner->attrmap->attrs[addr].stride,
+					runner->attrmap->attrs[addr].vtype,
+					runner->attrmap->attrs[addr].vsize,
+					runner->attrmap->attrs[addr].vsstride,
 
 					&runner->stack[runner->sp],
 					DL_DOUBLE,
-					runner->attrmap->attrs[addr].stride * sizeof(DLdouble),
+					runner->attrmap->attrs[addr].vbstride * sizeof(DLdouble),
 					sizeof(DLdouble)
 				);
 				runner->sp--;
