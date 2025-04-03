@@ -32,7 +32,7 @@ const char* cool_shader_code = /* code */;
 int main () {
 	// Initialize DL hints
 	DL_Hint(DL_STORE_OBJECTS, DL_TRUE);
-	DL_Hint(DL_DEF_TEXTURE_UNIT_TYPE, DL_CHAR);
+	DL_Hint(DL_DEF_TEXTURE_UNIT_TYPE, DL_BYTE);
 	DL_Hint(DL_DEF_TEXTURE_UNIT_SIZE, sizeof(char) * 4);
 	DL_Hint(DL_DEF_TEXTURE_UNIT_STRIDE, sizeof(char));
 
@@ -40,7 +40,7 @@ int main () {
 	DL_Init();
 
 	// Create Texture (there might be a function for creating a texture with default parameters)
-	canvas_texture = DL_CreateTexture(256, 256, DL_CHAR, sizeof(char) * 4, sizeof(char));
+	canvas_texture = DL_CreateTexture(256, 256, DL_BYTE, sizeof(char) * 4, sizeof(char));
 
 	// Create and initialize Path
 	circle_path = DL_CreatePath();
