@@ -4,12 +4,21 @@
 #ifndef DL_H
 #define DL_H
 
+#define DL_FALSE 0x0
+#define DL_TRUE  0x1
+
 #define DL_TYPE_BYTE  0x01
 #define DL_TYPE_SHORT 0x02
 #define DL_TYPE_INT   0x03
 #define DL_TYPE_LONG  0x04
 #define DL_TYPE_FLOAT 0x05
 #define DL_TYPE_DOUBLE 0x06
+
+#define DL_OBJECT_ARRAYS_ENABLED   0x00
+#define DL_OBJECT_ARRAYS_CAPACITY  0x01
+#define DL_TEXTURE_DEF_UNIT_SIZE   0x02
+#define DL_TEXTURE_DEF_UNIT_STRIDE 0x03
+#define DL_TEXTURE_DEF_UNIT_TYPE   0x04
 
 // TODO: Make structs like DLAttr and DLAttrList private if needed
 struct DLAttr;
@@ -25,6 +34,24 @@ typedef struct DLAttrList DLAttrList;
 typedef struct DLTexture DLTexture;
 typedef struct DLShader DLShader;
 typedef struct DLPath DLPath;
+
+extern uint32_t   DL_System_Hints[4];
+extern DLTexture* DL_System_Textures;
+extern DLShader*  DL_System_Shaders;
+extern DLPath*    DL_System_Paths;
+extern uint32_t   DL_System_Textures_Count;
+extern uint32_t   DL_System_Shaders_Count;
+extern uint32_t   DL_System_Paths_Count;
+extern uint32_t   DL_System_Textures_Capacity;
+extern uint32_t   DL_System_Shaders_Capacity;
+extern uint32_t   DL_System_Paths_Capacity;
+extern uint8_t*   DL_System_Textures_Available;
+extern uint8_t*   DL_System_Shaders_Available;
+extern uint8_t*   DL_System_Paths_Available;
+
+void DL_Init ();
+void DL_Terminate ();
+void DL_Hint (uint32_t hint, uint32_t value);
 
 struct DLAttr {
 	void*   value;
@@ -60,14 +87,16 @@ struct DLTexture {
 	void*   data;
 	size_t  data_capacity;
 	size_t  data_unit_size;
+	size_t  data_unit_stride;
 	uint8_t data_unit_type;
 
 	uint32_t width;
 	uint32_t height;
 };
 
-DLTexture* DL_CreateTexture (uint32_t width, uint32_t height, uint8_t unit_type, size_t unit_size);
-DLTexture  DL_CreateTextureP (uint32_t width, uint32_t height, uint8_t unit_type, size_t unit_size);
+DLTexture* DL_CreateTexture (uint32_t width, uint32_t height, uint8_t unit_type, size_t unit_size, size_t unit_stride);
+DLTexture  DL_CreateTextureP (uint32_t width, uint32_t height, uint8_t unit_type, size_t unit_size, size_t unit_stride);
+DLTexture* DL_CreateTextureD (uint32_t width, uint32_t height);
 void DL_DeleteTexture (DLTexture* texture);
 
 DLTexture* DL_CloneTexture (DLTexture* texture);

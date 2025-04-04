@@ -3,73 +3,49 @@
 #include <stdio.h>
 
 int main () {
-	DLAttr attr;
-	DLAttrList attrlist;
+	DLTexture* texture;
 
-	// DLAttr
-	{
-		DL_InitAttr(&attr, DL_TYPE_INT, sizeof(uint32_t) * 2, sizeof(uint32_t));
+	// Before DL System
 
-		// Setting DLAttr value
-		{
-			uint32_t value[2] = {10, 20};
-			DL_AttrSetValue(&attr, value);
-		}
+	DL_Hint(DL_TEXTURE_DEF_UNIT_TYPE, DL_TYPE_BYTE);
+	DL_Hint(DL_TEXTURE_DEF_UNIT_SIZE, sizeof(uint8_t));
+	DL_Hint(DL_TEXTURE_DEF_UNIT_STRIDE, sizeof(uint8_t));
 
-		uint32_t attr_value[2];
-		DL_AttrGetValue(&attr, &attr_value);
+	texture = DL_CreateTextureD(100, 100);
 
-		printf("Attribute Value: %d, %d\n", attr_value[0], attr_value[1]);
-	}
+	printf("\n");
+	printf("Texture Address: 0x%p\n", texture);
+	printf("Texture Unit Type: %d\n", texture->data_unit_type);
+	printf("Texture Unit Size: %d\n", texture->data_unit_size);
+	printf("Texture Unit Stride: %d\n", texture->data_unit_stride);
 
-	// DLAttrList
-	{
-		uint32_t a_coord, a_color;
-		uint32_t coord_v[2] = {50, 25};
-		uint8_t color_v[4] = {255, 0, 128, 255};
-		DL_InitAttrList(&attrlist, 2);
-		DL_AttrListBindAttrLocation(&attrlist, 0, "coord");
-		DL_AttrListBindAttrLocation(&attrlist, 1, "color");
-		a_coord = DL_AttrListGetAttrLocation(&attrlist, "coord");
-		a_color = DL_AttrListGetAttrLocation(&attrlist, "color");
-		DL_InitAttr(
-			DL_AttrListGetAttr(&attrlist, a_coord),
-			DL_TYPE_INT, sizeof(uint32_t) * 2, sizeof(uint32_t)
-		);
-		DL_InitAttr(
-			DL_AttrListGetAttr(&attrlist, a_color),
-			DL_TYPE_BYTE, sizeof(uint8_t) * 4, sizeof(uint8_t)
-		);
-		DL_AttrSetValue(
-			DL_AttrListGetAttr(&attrlist, a_coord),
-			&coord_v
-		);
-		DL_AttrSetValue(
-			DL_AttrListGetAttr(&attrlist, a_color),
-			&color_v
-		);
+	DL_DeleteTexture(texture);
 
-		uint32_t coord_v_get[2];
-		uint8_t color_v_get[4];
-		DL_AttrGetValue(
-			DL_AttrListGetAttr(&attrlist, a_coord),
-			&coord_v_get
-		);
-		DL_AttrGetValue(
-			DL_AttrListGetAttr(&attrlist, a_color),
-			&color_v_get
-		);
+	// After DL System Initialized
 
-		printf("AttrList Capacity: %d\n", attrlist.data_capacity);
-		printf("AttrList Attribute 0 (%s): %d, %d\n",
-			DL_AttrListGetAttrID(&attrlist, 0),
-			coord_v_get[0], coord_v_get[1]);
-		printf("AttrList Attribute 1 (%s): %d, %d, %d, %d\n",
-			DL_AttrListGetAttrID(&attrlist, 1),
-			color_v_get[0], color_v_get[1], color_v_get[2], color_v_get[3]);
-	}
+	DL_Hint(DL_OBJECT_ARRAYS_ENABLED, DL_TRUE);
+	DL_Hint(DL_OBJECT_ARRAYS_CAPACITY, 8);
 
-	DL_DeleteAttr(&attr);
-	DL_DeleteAttrList(&attrlist);
+	DL_Init();
+
+	texture = DL_CreateTextureD(100, 100);
+
+	printf("Texture Address: 0x%p\n", texture);
+	printf("Texture Unit Type: %d\n", texture->data_unit_type);
+	printf("Texture Unit Size: %d\n", texture->data_unit_size);
+	printf("Texture Unit Stride: %d\n", texture->data_unit_stride);
+
+	DL_Terminate();
+
+	// After DL System Freed
+
+	texture = DL_CreateTextureD(100, 100);
+
+	printf("Texture Address: 0x%p\n", texture);
+	printf("Texture Unit Type: %d\n", texture->data_unit_type);
+	printf("Texture Unit Size: %d\n", texture->data_unit_size);
+	printf("Texture Unit Stride: %d\n", texture->data_unit_stride);
+
+	DL_DeleteTexture(texture);
 	return 0;
 }
