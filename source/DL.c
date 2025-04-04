@@ -3,295 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* ================ 
+/* ================
  * DL System
  * ================
  */
 
-uint32_t DL_System_Hints[4];
-DLTexture* DL_System_Textures;
-DLShader*  DL_System_Shaders;
-DLPath*    DL_System_Paths;
-uint32_t   DL_System_Textures_Count;
-uint32_t   DL_System_Shaders_Count;
-uint32_t   DL_System_Paths_Count;
-uint32_t   DL_System_Textures_Capacity;
-uint32_t   DL_System_Shaders_Capacity;
-uint32_t   DL_System_Paths_Capacity;
-uint8_t*   DL_System_Textures_Available;
-uint8_t*   DL_System_Shaders_Available;
-uint8_t*   DL_System_Paths_Available;
-
-void DL_Init ()
-{
-	uint8_t init_objarr = DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED];
-
-	if (init_objarr)
-	{
-		uint32_t objarr_cap = DL_OBJECT_ARRAYS_ENABLED;
-
-		DL_System_Textures_Count = 0;
-		DL_System_Shaders_Count = 0;
-		DL_System_Textures_Count = 0;
-
-		DL_System_Textures_Capacity = objarr_cap;
-		DL_System_Shaders_Capacity = objarr_cap;
-		DL_System_Paths_Capacity = objarr_cap;
-
-		DL_System_Textures_Available = malloc(objarr_cap);
-		DL_System_Shaders_Available = malloc(objarr_cap);
-		DL_System_Paths_Available = malloc(objarr_cap);
-
-		memset(DL_System_Textures_Available, 1, objarr_cap);
-		memset(DL_System_Shaders_Available, 1, objarr_cap);
-		memset(DL_System_Paths_Available, 1, objarr_cap);
-
-		DL_System_Textures = malloc(objarr_cap * sizeof(DLTexture));
-		DL_System_Shaders = malloc(objarr_cap * sizeof(DLShader));
-		DL_System_Paths = malloc(objarr_cap * sizeof(DLPath));
-	}
-}
-
-void DL_Terminate ()
-{
-	if (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		uint32_t loop_loc;
-		uint32_t loop_end;
-
-		// Textures
-		loop_loc = -1;
-		loop_end = DL_System_Textures_Capacity;
-
-		while (++loop_loc < loop_end)
-		{
-			if (DL_System_Textures_Available[loop_loc])
-			{
-				continue;
-			}
-
-			DLTexture* texture = &DL_System_Textures[loop_loc];
-			DL_DeleteTexture(texture);
-		}
-
-		// Shaders
-		loop_loc = -1;
-		loop_end = DL_System_Shaders_Capacity;
-
-		while (++loop_loc < loop_end)
-		{
-			if (DL_System_Shaders_Available[loop_loc])
-			{
-				continue;
-			}
-
-			DLShader* shader = &DL_System_Shaders[loop_loc];
-			DL_DeleteShader(shader);
-		}
-
-		// Paths
-		loop_loc = -1;
-		loop_end = DL_System_Paths_Capacity;
-
-		while (++loop_loc < loop_end)
-		{
-			if (DL_System_Paths_Available[loop_loc])
-			{
-				continue;
-			}
-
-			DLPath* path = &DL_System_Paths[loop_loc];
-			DL_DeletePath(path);
-		}
-	}
-}
+uint32_t DL_System_Hints[3];
 
 void DL_Hint (uint32_t hint, uint32_t value)
 {
 	DL_System_Hints[hint] = value;
 }
 
-/* Private definitions
- */
-
-// Texture
-
-uint32_t DL_System_TextureAvailable ()
-{
-	uint32_t loop_loc = -1;
-	uint32_t loop_end = DL_System_Textures_Capacity;
-
-	while (++loop_loc < loop_end)
-	{
-		if (DL_System_Textures_Available[loop_loc])
-		{
-			break;
-		}
-	}
-
-	return loop_loc;
-}
-
-void* DL_System_PushTexture ()
-{
-	void* ptr;
-
-	switch (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		case 0:
-			ptr = malloc(sizeof(DLTexture));
-			break;
-
-		case 1:
-		{
-			uint32_t location = DL_System_TextureAvailable();
-			DL_System_Textures_Available[location] = 0;
-			DL_System_Textures_Count++;
-			ptr = DL_System_Textures + (location * sizeof(DLTexture));
-		}
-		break;
-	}
-
-	return ptr;
-}
-
-void DL_System_PopTexture (DLTexture* texture)
-{
-	switch (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		case 0:
-			free(texture);
-			break;
-
-		case 1:
-		{
-			uint32_t location = (texture - DL_System_Textures) / sizeof(DLTexture);
-			DL_System_Textures_Count--;
-			DL_System_Textures_Available[location] = 0;
-		}
-		break;
-	}
-}
-
-// Shader
-
-uint32_t DL_System_ShaderAvailable ()
-{
-	uint32_t loop_loc = -1;
-	uint32_t loop_end = DL_System_Shaders_Capacity;
-
-	while (++loop_loc < loop_end)
-	{
-		if (DL_System_Shaders_Available[loop_loc])
-		{
-			break;
-		}
-	}
-
-	return loop_loc;
-}
-
-void* DL_System_PushShader ()
-{
-	void* ptr;
-
-	switch (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		case 0:
-			ptr = malloc(sizeof(DLShader));
-			break;
-
-		case 1:
-		{
-			uint32_t location = DL_System_ShaderAvailable();
-			DL_System_Shaders_Available[location] = 0;
-			DL_System_Shaders_Count++;
-			ptr = DL_System_Shaders + (location * sizeof(DLShader));
-		}
-		break;
-	}
-
-	return ptr;
-}
-
-void DL_System_PopShader (DLShader* shader)
-{
-	switch (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		case 0:
-			free(shader);
-			break;
-
-		case 1:
-		{
-			uint32_t location = (shader - DL_System_Shaders) / sizeof(DLShader);
-			DL_System_Shaders_Count--;
-			DL_System_Shaders_Available[location] = 0;
-		}
-		break;
-	}
-}
-
-// Path
-
-uint32_t DL_System_PathAvailable ()
-{
-	uint32_t loop_loc = -1;
-	uint32_t loop_end = DL_System_Paths_Capacity;
-
-	while (++loop_loc < loop_end)
-	{
-		if (DL_System_Paths_Available[loop_loc])
-		{
-			break;
-		}
-	}
-
-	return loop_loc;
-}
-
-void* DL_System_PushPath ()
-{
-	void* ptr;
-
-	switch (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		case 0:
-			ptr = malloc(sizeof(DLPath));
-			break;
-
-		case 1:
-		{
-			uint32_t location = DL_System_PathAvailable();
-			DL_System_Paths_Available[location] = 0;
-			DL_System_Paths_Count++;
-			ptr = DL_System_Paths + (location * sizeof(DLPath));
-		}
-		break;
-	}
-
-	return ptr;
-}
-
-void DL_System_PopPath (DLPath* path)
-{
-	switch (DL_System_Hints[DL_OBJECT_ARRAYS_ENABLED])
-	{
-		case 0:
-			free(path);
-			break;
-
-		case 1:
-		{
-			uint32_t location = (path - DL_System_Paths) / sizeof(DLPath);
-			DL_System_Paths_Count--;
-			DL_System_Paths_Available[location] = 0;
-		}
-		break;
-	}
-}
-
-/* ================ 
+/* ================
  * DLAttr
  * ================
  */
@@ -325,7 +49,7 @@ void DL_AttrSetValue (DLAttr* attr, void* from)
 	memcpy(attr->value, from, attr->value_size);
 }
 
-/* ================ 
+/* ================
  * DLAttrList
  * ================
  */
@@ -335,6 +59,10 @@ void DL_InitAttrList (DLAttrList* attrlist, uint32_t data_capacity)
 	attrlist->data_v = calloc(data_capacity, sizeof(DLAttr));
 	attrlist->data_k = calloc(data_capacity, sizeof(char*));
 	attrlist->data_capacity = data_capacity;
+
+	attrlist->shader_attr_coord = 0;
+	attrlist->shader_attr_color = 0;
+	attrlist->path_attr_texture = 0;
 }
 
 void DL_DeleteAttrList (DLAttrList* attrlist)
@@ -346,11 +74,16 @@ void DL_DeleteAttrList (DLAttrList* attrlist)
 	loop_end = attrlist->data_capacity;
 
 	while (++loop_loc < attrlist->data_capacity)
-{
+	{
 		DLAttr* attr = DL_AttrListGetAttr(attrlist, loop_loc);
 
+		if (attr->value_ptr == 1)
+		{
+			continue;
+		}
+
 		if (attr->value == NULL)
-{
+		{
 			continue;
 		}
 
@@ -361,11 +94,11 @@ void DL_DeleteAttrList (DLAttrList* attrlist)
 	// loop_end = attrlist->data_capacity;
 
 	while (++loop_loc < attrlist->data_capacity)
-{
+	{
 		char* id = DL_AttrListGetAttrID(attrlist, loop_loc);
 
 		if (id == NULL)
-{
+		{
 			continue;
 		}
 
@@ -391,11 +124,11 @@ uint32_t DL_AttrListGetAttrLocation (DLAttrList* attrlist, char* id)
 	uint32_t location = -1;
 
 	while (++location < attrlist->data_capacity)
-{
+	{
 		char* comp_id = DL_AttrListGetAttrID(attrlist, location);
 
 		if (strcmp(id, comp_id) == 0)
-{
+		{
 			return location;
 		}
 	}
@@ -410,15 +143,78 @@ void DL_AttrListBindAttrLocation (DLAttrList* attrlist, uint32_t location, char*
 	memcpy(attrlist->data_k[location], id, id_size);
 }
 
-/* ================ 
+void DL_AttrListBindAttr (DLAttrList* attrlist, uint32_t location, uint8_t ptr, uint8_t type, size_t size, size_t stride)
+{
+	DLAttr* attr = DL_AttrListGetAttr(attrlist, location);
+
+	attr->value = ptr ? NULL : calloc(size, 1);
+	attr->value_ptr = ptr;
+	attr->value_type = type;
+	attr->value_size = size;
+	attr->value_stride = stride;
+}
+
+void DL_AttrListBindAttrType (DLAttrList* attrlist, uint32_t location, uint8_t type)
+{
+	switch (type)
+	{
+		case DL_SHADER_ATTR_COORD:
+			attrlist->shader_attr_coord = location;
+			break;
+
+		case DL_SHADER_ATTR_COLOR:
+			attrlist->shader_attr_color = location;
+			break;
+
+		case DL_PATH_ATTR_TEXTURE:
+			attrlist->path_attr_texture = location;
+			break;
+	}
+}
+
+/* ================
+ * DLCode
+ * ================
+ */
+
+void DL_InitCode (DLCode* code, void (*bind) (DLAttrList* attrlist))
+{
+	code->bind = bind;
+}
+
+void DL_DeleteCode (DLCode* code)
+{
+	return;
+}
+
+/* ================
  * DLTexture
  * ================
  */
 
 DLTexture* DL_CreateTexture (uint32_t width, uint32_t height, uint8_t unit_type, size_t unit_size, size_t unit_stride)
 {
-	DLTexture* texture = DL_System_PushTexture();
+	DLTexture* texture = malloc(sizeof(DLTexture));
+	DL_InitTexture(texture, width, height, unit_type, unit_size, unit_stride);
 
+	return texture;
+}
+
+DLTexture* DL_CreateTextureD (uint32_t width, uint32_t height)
+{
+	DLTexture* texture = malloc(sizeof(DLTexture));
+	DL_InitTexture(texture,
+	               width,
+	               height,
+	               DL_TEXTURE_DEF_UNIT_TYPE,
+	               DL_TEXTURE_DEF_UNIT_SIZE,
+	               DL_TEXTURE_DEF_UNIT_STRIDE);
+
+	return texture;
+}
+
+void DL_InitTexture (DLTexture* texture, uint32_t width, uint32_t height, uint8_t unit_type, size_t unit_size, size_t unit_stride)
+{
 	size_t data_capacity = width * height;
 
 	texture->data = calloc(data_capacity, unit_size);
@@ -428,25 +224,6 @@ DLTexture* DL_CreateTexture (uint32_t width, uint32_t height, uint8_t unit_type,
 	texture->data_unit_stride = unit_stride;
 	texture->width = width;
 	texture->height = height;
-
-	return texture;
-}
-
-DLTexture* DL_CreateTextureD (uint32_t width, uint32_t height)
-{
-	DLTexture* texture = DL_System_PushTexture();
-
-	size_t data_capacity = width * height;
-
-	texture->data = calloc(data_capacity, DL_TEXTURE_DEF_UNIT_SIZE);
-	texture->data_capacity = data_capacity;
-	texture->data_unit_type = DL_TEXTURE_DEF_UNIT_TYPE;
-	texture->data_unit_size = DL_TEXTURE_DEF_UNIT_SIZE;
-	texture->data_unit_stride = DL_TEXTURE_DEF_UNIT_STRIDE;
-	texture->width = width;
-	texture->height = height;
-
-	return texture;
 }
 
 void DL_DeleteTexture (DLTexture* texture)
@@ -454,12 +231,12 @@ void DL_DeleteTexture (DLTexture* texture)
 	free(texture->data);
 	texture->data = NULL;
 
-	DL_System_PopTexture(texture);
+	free(texture);
 }
 
 DLTexture* DL_CloneTexture (DLTexture* texture)
 {
-	DLTexture* texture_n = DL_System_PushTexture();
+	DLTexture* texture_n = malloc(sizeof(DLTexture));
 	memcpy(texture_n, texture, sizeof(DLTexture));
 
 	size_t data_size = texture_n->data_capacity * texture_n->data_unit_size;
@@ -518,8 +295,12 @@ void DL_ResizeTexture (DLTexture* texture, uint32_t width, uint32_t height)
 	// TODO: Finish this function
 }
 
-void DL_TextureUseShader (DLTexture* texture, DLShader* path)
+void DL_TextureUseShader (DLTexture* texture, DLShader* shader)
 {
+	DLAttrList* attrlist = DL_ShaderGetAttrList(shader);
+	DLAttr* attr_coord = DL_AttrListGetAttr(attrlist, attrlist->shader_attr_coord);
+	DLAttr* attr_color = DL_AttrListGetAttr(attrlist, attrlist->shader_attr_color);
+
 	uint32_t loop_loc = -1;
 
 	while (++loop_loc < texture->data_capacity)
@@ -528,119 +309,134 @@ void DL_TextureUseShader (DLTexture* texture, DLShader* path)
 		uint32_t coordY = loop_loc / texture->width;
 		uint32_t coord[2] = {coordX, coordY};
 		void*    color = DL_TextureGetPixelPI(texture, loop_loc);
-		path->func(coord, color);
+
+		attr_coord->value = (uint32_t*)&coord;
+		attr_color->value = color;
+
+		shader->code.bind(attrlist);
 	}
 }
 
 void DL_TextureUsePath (DLTexture* texture, DLPath* path)
 {
-	path->func(texture);
+	DLAttrList* attrlist = DL_PathGetAttrList(path);
+	DLAttr* attr_texture = DL_AttrListGetAttr(attrlist, attrlist->path_attr_texture);
+	attr_texture->value = texture;
+	path->code.bind(attrlist);
 }
 
-/* ================ 
+/* ================
  * DLShader
  * ================
  */
 
-DLShader* DL_CreateShader ()
+DLShader* DL_CreateShader (DLAttrList* attrlist, DLCode* code)
 {
-	DLShader* shader = DL_System_PushShader();
-
-	shader->func = NULL;
-
+	DLShader* shader = malloc(sizeof(DLShader));
+	DL_InitShader(shader, attrlist, code);
 	return shader;
+}
+
+void DL_InitShader (DLShader* shader, DLAttrList* attrlist, DLCode* code)
+{
+	if (attrlist != NULL)
+	{
+		shader->attrlist = *attrlist;
+	}
+
+	if (code != NULL)
+	{
+		shader->code = *code;
+	}
 }
 
 void DL_DeleteShader (DLShader* shader)
 {
 	DL_DeleteAttrList(&shader->attrlist);
+	DL_DeleteCode(&shader->code);
 
-	DL_System_PopShader(shader);
+	free(shader);
 }
 
-void DL_InitShaderAttrList (DLShader* shader, uint32_t capacity)
+DLAttrList* DL_ShaderGetAttrList (DLShader* shader)
 {
-	DL_InitAttrList(&shader->attrlist, capacity);
+	return &shader->attrlist;
 }
 
-uint32_t DL_GetShaderAttrLocation (DLShader* shader, char* id)
+DLCode* DL_ShaderGetCode (DLShader* shader)
 {
-	return DL_AttrListGetAttrLocation(&shader->attrlist, id);
+	return &shader->code;
 }
 
-void DL_BindShaderAttrLocation (DLShader* shader, uint32_t location, char* id)
+void DL_ShaderBindAttrList (DLShader* shader, DLAttrList* attrlist)
 {
-	DL_AttrListBindAttrLocation(&shader->attrlist, location, id);
+	shader->attrlist = *attrlist;
 }
 
-void DL_InitShaderAttr (DLShader* shader, uint32_t location, uint8_t type, size_t size, size_t stride)
+void DL_ShaderBindCode (DLShader* shader, DLCode* code)
 {
-	DLAttr* attr = DL_AttrListGetAttr(&shader->attrlist, location);
-	DL_InitAttr(attr, type, size, stride);
+	shader->code = *code;
 }
 
-void DL_GetShaderAttrValue (DLShader* shader, void* to, uint32_t location)
-{
-	DLAttr* attr = DL_AttrListGetAttr(&shader->attrlist, location);
-	DL_AttrGetValue(attr, to);
-}
-
-void DL_SetShaderAttrValue (DLShader* shader, void* from, uint32_t location)
-{
-	DLAttr* attr = DL_AttrListGetAttr(&shader->attrlist, location);
-	DL_AttrSetValue(attr, from);
-}
-
-/* ================ 
+/* ================
  * DLPath
  * ================
  */
 
-DLPath* DL_CreatePath ()
+DLPath* DL_CreatePath (DLAttrList* attrlist, DLCode* code)
 {
-	DLPath* path = DL_System_PushPath();
+	DLPath* path = malloc(sizeof(DLPath));
 
-	path->func = NULL;
+	if (attrlist != NULL)
+	{
+		path->attrlist = *attrlist;
+	}
+
+	if (code != NULL)
+	{
+		path->code = *code;
+	}
 
 	return path;
+}
+
+void DL_InitPath (DLPath* path, DLAttrList* attrlist, DLCode* code)
+{
+	if (attrlist != NULL)
+	{
+		path->attrlist = *attrlist;
+	}
+
+	if (code != NULL)
+	{
+		path->code = *code;
+	}
 }
 
 void DL_DeletePath (DLPath* path)
 {
 	DL_DeleteAttrList(&path->attrlist);
+	DL_DeleteCode(&path->code);
 
-	DL_System_PopPath(path);
+	free(path);
 }
 
-void DL_InitPathAttrList (DLPath* path, uint32_t capacity)
+DLAttrList* DL_PathGetAttrList (DLPath* path)
 {
-	DL_InitAttrList(&path->attrlist, capacity);
+	return &path->attrlist;
 }
 
-uint32_t DL_GetPathAttrLocation (DLPath* path, char* id)
+DLCode* DL_PathGetCode (DLPath* path)
 {
-	return DL_AttrListGetAttrLocation(&path->attrlist, id);
+	return &path->code;
 }
 
-void DL_BindPathAttrLocation (DLPath* path, uint32_t location, char* id)
+void DL_PathBindAttrList (DLPath* path, DLAttrList* attrlist)
 {
-	DL_AttrListBindAttrLocation(&path->attrlist, location, id);
+	path->attrlist = *attrlist;
 }
 
-void DL_InitPathAttr (DLPath* path, uint32_t location, uint8_t type, size_t size, size_t stride)
+void DL_PathBindCode (DLPath* path, DLCode* code)
 {
-	DLAttr* attr = DL_AttrListGetAttr(&path->attrlist, location);
-	DL_InitAttr(attr, type, size, stride);
-}
-
-void DL_GetPathAttrValue (DLPath* path, void* to, uint32_t location)
-{
-	DLAttr* attr = DL_AttrListGetAttr(&path->attrlist, location);
-	DL_AttrGetValue(attr, to);
-}
-
-void DL_SetPathAttrValue (DLPath* path, void* from, uint32_t location)
-{
-	DLAttr* attr = DL_AttrListGetAttr(&path->attrlist, location);
-	DL_AttrSetValue(attr, from);
+	path->code = *code;
 }
