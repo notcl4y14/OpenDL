@@ -73,7 +73,7 @@ void DL_DeleteAttrList (DLAttrList* attrlist)
 	loop_loc = -1;
 	loop_end = attrlist->data_capacity;
 
-	while (++loop_loc < attrlist->data_capacity)
+	while (++loop_loc < loop_end)
 	{
 		DLAttr* attr = DL_AttrListGetAttr(attrlist, loop_loc);
 
@@ -93,7 +93,7 @@ void DL_DeleteAttrList (DLAttrList* attrlist)
 	loop_loc = -1;
 	// loop_end = attrlist->data_capacity;
 
-	while (++loop_loc < attrlist->data_capacity)
+	while (++loop_loc < loop_end)
 	{
 		char* id = DL_AttrListGetAttrID(attrlist, loop_loc);
 
@@ -243,6 +243,8 @@ DLTexture* DL_CloneTexture (DLTexture* texture)
 
 	texture_n->data = malloc(data_size);
 	memcpy(texture_n->data, texture->data, data_size);
+
+	return texture_n;
 }
 
 void DL_CopyTexture (DLTexture* texture, DLTexture* texture_source)
@@ -301,17 +303,19 @@ void DL_TextureUseShader (DLTexture* texture, DLShader* shader)
 	DLAttr* attr_coord = DL_AttrListGetAttr(attrlist, attrlist->shader_attr_coord);
 	DLAttr* attr_color = DL_AttrListGetAttr(attrlist, attrlist->shader_attr_color);
 
+	uint32_t value_coord[2];
+	void*    value_color;
+
 	uint32_t loop_loc = -1;
 
-	while (++loop_loc < texture->data_capacity)
+	while (++loop_loc != texture->data_capacity)
 	{
-		uint32_t coordX = loop_loc % texture->width;
-		uint32_t coordY = loop_loc / texture->width;
-		uint32_t coord[2] = {coordX, coordY};
-		void*    color = DL_TextureGetPixelPI(texture, loop_loc);
+		value_coord[0] = loop_loc % texture->width;
+		value_coord[1] = loop_loc / texture->width;
+		value_color    = DL_TextureGetPixelPI(texture, loop_loc);
 
-		attr_coord->value = (uint32_t*)&coord;
-		attr_color->value = color;
+		attr_coord->value = (uint32_t*)&value_coord;
+		attr_color->value = value_color;
 
 		shader->code.bind(attrlist);
 	}

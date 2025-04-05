@@ -10,4 +10,4 @@ setup:
 build:
 	@echo Building DL...
 	@echo ================
-	gcc -c ${source_dir}/DL.c -o ${out_dir}/DL.o -I${include_dir}
+	gcc -c ${source_dir}/DL.c -o ${out_dir}/DL.o -I${include_dir} -O3 -Wall -Werror --pedantic
